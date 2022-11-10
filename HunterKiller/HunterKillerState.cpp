@@ -77,7 +77,7 @@ bool HunterKillerState::IsDone() const
 void HunterKillerState::EndPlayerTurn()
 {
     ++TurnCounter;
-    ActivePlayerID = Players->at(TurnCounter)->GetID();
+    ActivePlayerID = Players->at(TurnCounter % GetNumberOfPlayers())->GetID();
     
     if (TurnCounter % GetNumberOfPlayers() == 0)
     {

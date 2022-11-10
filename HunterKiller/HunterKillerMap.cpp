@@ -372,6 +372,32 @@ MapFeature* HunterKillerMap::GetFeatureAtLocation(const MapLocation& rLocation) 
 	return nullptr;
 }
 
+bool HunterKillerMap::IsAttackOrderWithoutTarget(const UnitOrder& rOrder) const
+{
+	if (!rOrder.IsAttackOrder() || !rOrder.GetTargetLocation().has_value())
+		return false;
+
+	return !GetUnitAtLocation(rOrder.GetTargetLocation().value()) && !dynamic_cast<Structure*>(GetFeatureAtLocation(rOrder.GetTargetLocation().value()));
+}
+
+bool HunterKillerMap::IsAttackOrderTargetingAllyStructure(const UnitOrder& rOrder, const Unit* pUnit) const
+{
+	if (!rOrder.IsAttackOrder() || !rOrder.GetTargetLocation().has_value())
+		return false;
+	auto* pFeature = GetFeatureAtLocation(rOrder.GetTargetLocation().value());
+	if (!pFeature) return false;
+    const auto* pStructure = dynamic_cast<Structure*>(pFeature);
+	return pStructure && pStructure->GetControllingPlayerID() == pUnit->GetControllingPlayerID();
+}
+
+bool HunterKillerMap::IsAttackOrderTargetingAllyUnit(const UnitOrder& rOrder, const Unit* pUnit) const
+{
+	if (!rOrder.IsAttackOrder() || !rOrder.GetTargetLocation().has_value())
+		return false;
+    const auto* pTargetUnit = GetUnitAtLocation(rOrder.GetTargetLocation().value());
+	return pTargetUnit && pTargetUnit->GetControllingPlayerID() == pUnit->GetControllingPlayerID();
+}
+
 // Ownership of GameObject memory is passed to here
 void HunterKillerMap::RegisterGameObject(GameObject* pGameObject) const
 {

@@ -11,6 +11,7 @@ public:
         delete Information; Information = nullptr;
     }
     bool Accepted = false;
+    bool FinishedGame = false;
     const std::string* Information = nullptr;
     std::vector<std::pair<int, int>>* PlayerRanking = nullptr;
 };
@@ -26,5 +27,5 @@ public:
     static constexpr bool IGNORE_FAILURES = false;
 private:
     static void AwardPointsForUnitDeath(HunterKillerPlayer& rPlayer, Unit& rKilledUnit);
-    static constexpr bool LOG_TO_CONSOLE = true;
+    static constexpr bool LOG_TO_CONSOLE = false;
 };

@@ -37,6 +37,7 @@ Result* HunterKillerRules::Handle(HunterKillerState& rState, const HunterKillerA
         }
         // Return result including ranking
         pActionResult->PlayerRanking = pPlayerRanking;
+        pActionResult->FinishedGame = true;
     }
 
     return pActionResult;

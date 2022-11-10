@@ -53,6 +53,9 @@ public:
     [[nodiscard]] Unit* GetUnitAtLocation(const MapLocation& rLocation) const;
     [[nodiscard]] MapFeature* GetFeatureAtLocation(const MapLocation& rLocation) const;
     int GetCurrentCommandCenterCount() const { if (!CommandCenterObjectIDs) return 0; return static_cast<int>(CommandCenterObjectIDs->size()); }
+    bool IsAttackOrderWithoutTarget(const UnitOrder& rOrder) const;
+    bool IsAttackOrderTargetingAllyStructure(const UnitOrder& rOrder, const Unit* pUnit) const;
+    bool IsAttackOrderTargetingAllyUnit(const UnitOrder& rOrder, const Unit* pUnit) const;
     void RegisterGameObject(GameObject* pGameObject) const;
     void UnregisterGameObject(GameObject* pGameObject) const;
     void UpdateFieldOfView();
