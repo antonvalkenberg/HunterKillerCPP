@@ -2,38 +2,42 @@
 #include "../HunterKiller/HunterKillerStateFactory.h"
 #include "../HunterKillerBots/BaseBot.h"
 #include "../HunterKillerBots/QuickRandomBot.h"
+#include "../HunterKillerBots/RandomBot.h"
 
 int main()
 {
-	auto* actions = new std::vector<HunterKillerAction*>();
-	auto* actionResults = new std::vector<std::string>();
-	auto* factory = new HunterKillerStateFactory();
-	auto* player1Name = new std::string("A");
-	auto* player2Name = new std::string("B");
-    const auto* playerNames = new std::vector{ player1Name, player2Name };
+	auto* pActions = new std::vector<HunterKillerAction*>();
+	auto* pActionResults = new std::vector<std::string>();
+	auto* pFactory = new HunterKillerStateFactory();
+	auto* pPlayer1Name = new std::string("A");
+	auto* pPlayer2Name = new std::string("B");
+    const auto* pPlayerNames = new std::vector{ pPlayer1Name, pPlayer2Name };
 
-	HunterKillerState* state = factory->GenerateInitialState(*playerNames);
+	HunterKillerState* pState = pFactory->GenerateInitialState(*pPlayerNames);
 
-	auto* bot = new QuickRandomBot();
+	auto* bot = new RandomBot();
 
-	Result* result;
+	bool finishedGame;
 	do {
-        const HunterKillerState* stateCopy = state->Copy();
-		//stateCopy.prepare(state.getActivePlayerID());
+        HunterKillerState* pStateCopy = pState->Copy();
+		pStateCopy->Prepare(pState->GetActivePlayerID());
 
-		HunterKillerAction* action = bot->Handle(*stateCopy);
-		actions->push_back(action);
+		HunterKillerAction* pAction = bot->Handle(*pStateCopy);
+		pActions->push_back(pAction);
 
-		result = HunterKillerRules::Handle(*state, *action);
+		Result* pResult = HunterKillerRules::Handle(*pState, *pAction);
 
-		if (!result->Information->empty())
-			actionResults->push_back(std::string(*result->Information));
+		if (!pResult->Information->empty())
+			pActionResults->push_back(std::string(*pResult->Information));
 
-		std::cout << state->GetMap().ToString() << std::endl;
+		std::cout << pState->GetMap().ToString() << std::endl;
 
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		//std::this_thread::sleep_for(std::chrono::seconds(1));
+		finishedGame = pResult->FinishedGame;
 
-	} while (!result->FinishedGame && result->Accepted);
+		delete pStateCopy; pStateCopy = nullptr;
+		delete pResult; pResult = nullptr;
+	} while (!finishedGame);
 
 	return 0;
 }

@@ -25,6 +25,7 @@ public:
     bool CanStructureSpawnAUnit(const Structure& rStructure) const;
     bool CanStructureExecute(const Structure& rStructure, StructureOrderType structureOrderType) const;
     bool CanStructureSpawn(const Structure& rStructure, UnitType unitType) const;
+    void Prepare(int activePlayerID);
 private:
     int CurrentRound;
     int ActivePlayerID;

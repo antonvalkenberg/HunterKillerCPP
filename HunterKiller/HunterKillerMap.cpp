@@ -193,6 +193,7 @@ bool HunterKillerMap::Move(const MapLocation& rTargetLocation, GameObject& rGame
 	if (const auto door = dynamic_cast<Door*>(MapContent->at(targetPosition)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX]); success && door && !door->IsOpen()) {
 		door->Open();
 		InvalidateFieldOfViewFor(door->GetLocation());
+		UpdateFieldOfView();
 	}
 
 	return success;
@@ -429,10 +430,13 @@ void HunterKillerMap::UnregisterGameObject(GameObject* pGameObject) const {
 void HunterKillerMap::UpdateFieldOfView() {
 	for (const std::pair<int, GameObject*> kv : *Objects) {
         const auto pUnit = dynamic_cast<Unit*>(kv.second);
-		if (pUnit && pUnit->IsFieldOfViewValid())
+		if (!pUnit)
 			continue;
-		if (pUnit)
-			pUnit->UpdateFieldOfView(GetFieldOfView(*pUnit));
+
+		if (pUnit->IsFieldOfViewValid())
+			continue;
+		
+		pUnit->UpdateFieldOfView(GetFieldOfView(*pUnit));
 	}
 }
 
@@ -658,4 +662,22 @@ bool HunterKillerMap::AttackLocation(const MapLocation& rLocation, const int dam
 		pUnit->ReduceHP(damage);
 
 	return true;
+}
+
+void HunterKillerMap::Prepare(int activePlayerID, std::unordered_set<MapLocation, MapLocationHash>& rPlayerFieldOfView, std::vector<int>& rRemovedUnitIDs)
+{
+	for (auto* pMapLocation : *Locations) {
+		// Check if this location lies outside of the player's field-of-view
+		if (rPlayerFieldOfView.contains(*pMapLocation))
+			continue;
+		
+		// Check if the unit belongs to another player
+		if (auto* pUnit = dynamic_cast<Unit*>(MapContent->at(ToPosition(*pMapLocation))[HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX]); pUnit && pUnit->GetControllingPlayerID() != activePlayerID) {
+			// Remove the unit from the map
+			rRemovedUnitIDs.push_back(pUnit->GetID());
+			UnregisterGameObject(pUnit);
+			IDBuffer->erase(std::find(IDBuffer->begin(), IDBuffer->end(), pUnit->GetID()));
+			delete pUnit; pUnit = nullptr;
+		}
+	}
 }

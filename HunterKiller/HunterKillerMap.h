@@ -17,6 +17,7 @@
 class HunterKillerMap
 {
     friend class HunterKillerRules;
+    friend class HunterKillerState;
 public:
     explicit HunterKillerMap(const std::string& name) : Name(name) {}
     HunterKillerMap(const HunterKillerMap& rMap);
@@ -99,4 +100,5 @@ protected:
     void CopyMapContent(std::vector<std::vector<GameObject*>>* pCopyTo, std::unordered_map<int, GameObject*>* pCopiedObjects) const;
     void SetMapContent(std::vector<std::vector<GameObject*>>* pNewMapContent) { delete MapContent; MapContent = pNewMapContent; }
     bool AttackLocation(const MapLocation& rLocation, int damage) const;
+    void Prepare(int activePlayerID, std::unordered_set<MapLocation, MapLocationHash>& rPlayerFieldOfView, std::vector<int>& rRemovedUnitIDs);
 };

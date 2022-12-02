@@ -22,9 +22,11 @@ Result* HunterKillerRules::Handle(HunterKillerState& rState, const HunterKillerA
     }
 
     Result* pActionResult = PerformAction(rState, rAction);
+    // We need to check if the state is a completed state before ending the turn, because ending the turn rolls over some variables like turncounter and activeplayer
+    bool stateIsDone = rState.IsDone();
     rState.EndPlayerTurn();
 
-    if (rState.IsDone())
+    if (stateIsDone)
     {
         // Sort players by descending score
         auto* pPlayers = rState.GetPlayers();
@@ -376,7 +378,7 @@ bool HunterKillerRules::IsOrderPossible(const HunterKillerState& rState, HunterK
             return rMap.IsMovePossible(pOrderObject->GetLocation(), *pUnitOrder, pFailureReasons);
 
         // Make sure the target location is in the Unit's field of view
-        if (!pUnit->GetFieldOfView()->contains(targetLocation.value()))
+        if (!pUnit->IsInFieldOfView(targetLocation.value()))
         {
             if (pFailureReasons)
                 *pFailureReasons += std::format("UnitOrder ({0:d} -> Attack {1:s}) fail: Target location is not in unit's Field-of-View.\n", pUnitOrder->GetObjectID(), targetLocation.value().ToString());
