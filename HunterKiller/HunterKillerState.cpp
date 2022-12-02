@@ -226,3 +226,20 @@ void HunterKillerState::AwardScoreToController(const Structure& rStructure) cons
     if (HunterKillerPlayer* pPlayer = GetPlayer(rStructure.GetControllingPlayerID()); pPlayer && rStructure.GetGeneratesScore())
         pPlayer->AwardScore(rStructure.GetScoreGeneration());
 }
+
+void HunterKillerState::Prepare(int activePlayerID) {
+    auto* pRemovedUnitIDs = new std::vector<int>();
+    // We need to remove any units that belong to another player, and are not in the active player's FoV
+    auto* pPlayerFoV = GetActivePlayer().GetCombinedFieldOfView(*Map);
+    Map->Prepare(activePlayerID, *pPlayerFoV, *pRemovedUnitIDs);
+
+    // Tell the players to remove the affected unit-IDs from their collection
+    for (auto* pPlayer : *Players) {
+        for (int id : *pRemovedUnitIDs) {
+            pPlayer->RemoveUnit(id);
+        }
+    }
+
+    delete pPlayerFoV; pPlayerFoV = nullptr;
+    delete pRemovedUnitIDs; pRemovedUnitIDs = nullptr;
+}

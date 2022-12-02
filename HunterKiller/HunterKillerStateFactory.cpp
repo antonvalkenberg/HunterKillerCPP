@@ -148,7 +148,7 @@ HunterKillerState* HunterKillerStateFactory::GenerateInitialStateFromSetup(const
     delete pPlayerSections;
     pPlayerSections = nullptr;
 
-    HunterKillerConstants::Set_BASE_RESOURCE_GENERATION(rMapSetup.StartingResources);
+    HunterKillerConstants::Set_BASE_RESOURCE_GENERATION(rMapSetup.BaseResourceGeneration);
 
     ConstructInternalMap(rMapSetup, *pPlayers);
 
