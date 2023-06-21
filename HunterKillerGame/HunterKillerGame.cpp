@@ -6,7 +6,11 @@
 #include "../HunterKillerBots/BaseBot.h"
 #include "../HunterKillerBots/QuickRandomBot.h"
 #include "../HunterKillerBots/RandomBot.h"
+#include "ResourceManager.h"
+#include "SpriteRenderer.h"
 
+void Init();
+void Render();
 // GLFW function declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -15,6 +19,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 const unsigned int SCREEN_WIDTH = 800;
 // The height of the screen
 const unsigned int SCREEN_HEIGHT = 600;
+
+SpriteRenderer* pRenderer;
 
 int main()
 {
@@ -56,6 +62,7 @@ int main()
 
 	// initialize game
 	// ---------------
+	Init();
 	HunterKillerState* pState = pFactory->GenerateInitialState(*pPlayerNames);
 
 	auto* bot = new RandomBot();
@@ -94,7 +101,7 @@ int main()
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		//TODO: call game Render
+		Render();
 
 		glfwSwapBuffers(window);
 
@@ -102,8 +109,28 @@ int main()
 		delete pResult; pResult = nullptr;
 	} while (!finishedGame && !glfwWindowShouldClose(window));
 
+	delete pRenderer; pRenderer = nullptr;
 	glfwTerminate();
 	return 0;
+}
+
+void Init()
+{
+	// load shaders
+    ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.frag", nullptr, "sprite");
+    // configure shaders
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT), 0.0f, -1.0f, 1.0f);
+    ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
+    ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
+    // set render-specific controls
+    pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
+    // load textures
+    ResourceManager::LoadTexture("textures/infected_p1_0.png", true, "infected_p1_0");
+}
+
+void Render()
+{
+	pRenderer->DrawSprite(ResourceManager::GetTexture("infected_p1_0"), glm::vec2(0.0f, 0.0f), glm::vec2(100.0f, 100.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
