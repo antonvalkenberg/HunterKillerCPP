@@ -160,7 +160,7 @@ HunterKillerState* HunterKillerStateFactory::GenerateInitialStateFromSetup(const
             if (pObject)
             {
                 // Check if it's a base and should be controlled by this player
-                if (const Structure* pStructure = dynamic_cast<Structure*>(pObject); pStructure && pStructure->GetType() == STRUCTURE_BASE && pStructure->GetControllingPlayerID() == pPlayer->GetID())
+                if (const Structure* pStructure = dynamic_cast<Structure*>(pObject); pStructure && pStructure->GetStructureType() == STRUCTURE_BASE && pStructure->GetControllingPlayerID() == pPlayer->GetID())
                 {
                     pPlayer->AssignCommandCenter(*pStructure);
                     pPlayer->AddStructure(pStructure->GetID());

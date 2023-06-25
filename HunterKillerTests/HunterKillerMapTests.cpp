@@ -171,23 +171,23 @@ TEST(MapCreationTest, MapFeaturesCreation)
 	ASSERT_TRUE(dynamic_cast<Space*>(pMapContent->at(35).at(index)));
 
 	// Check if the correct types of Structures are created
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(7).at(index))->GetType() == STRUCTURE_BASE);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(7).at(index))->GetStructureType() == STRUCTURE_BASE);
 
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(12).at(index))->GetType() == STRUCTURE_OBJECTIVE);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(13).at(index))->GetType() == STRUCTURE_OUTPOST);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(14).at(index))->GetType() == STRUCTURE_STRONGHOLD);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(15).at(index))->GetType() == STRUCTURE_STRONGHOLD);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(16).at(index))->GetType() == STRUCTURE_OUTPOST);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(17).at(index))->GetType() == STRUCTURE_OBJECTIVE);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(12).at(index))->GetStructureType() == STRUCTURE_OBJECTIVE);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(13).at(index))->GetStructureType() == STRUCTURE_OUTPOST);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(14).at(index))->GetStructureType() == STRUCTURE_STRONGHOLD);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(15).at(index))->GetStructureType() == STRUCTURE_STRONGHOLD);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(16).at(index))->GetStructureType() == STRUCTURE_OUTPOST);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(17).at(index))->GetStructureType() == STRUCTURE_OBJECTIVE);
 
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(18).at(index))->GetType() == STRUCTURE_OBJECTIVE);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(19).at(index))->GetType() == STRUCTURE_OUTPOST);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(20).at(index))->GetType() == STRUCTURE_STRONGHOLD);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(21).at(index))->GetType() == STRUCTURE_STRONGHOLD);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(22).at(index))->GetType() == STRUCTURE_OUTPOST);
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(23).at(index))->GetType() == STRUCTURE_OBJECTIVE);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(18).at(index))->GetStructureType() == STRUCTURE_OBJECTIVE);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(19).at(index))->GetStructureType() == STRUCTURE_OUTPOST);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(20).at(index))->GetStructureType() == STRUCTURE_STRONGHOLD);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(21).at(index))->GetStructureType() == STRUCTURE_STRONGHOLD);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(22).at(index))->GetStructureType() == STRUCTURE_OUTPOST);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(23).at(index))->GetStructureType() == STRUCTURE_OBJECTIVE);
 
-	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(28).at(index))->GetType() == STRUCTURE_BASE);
+	ASSERT_TRUE(dynamic_cast<Structure*>(pMapContent->at(28).at(index))->GetStructureType() == STRUCTURE_BASE);
 
 	// Check if the doors are created correctly (open/closed)
 	// Closed door positions: 6, 11, 24, 29

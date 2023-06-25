@@ -25,6 +25,7 @@ public:
     ~HunterKillerMap();
     [[nodiscard]] HunterKillerMap* Copy() const { return new HunterKillerMap(*this); }
     int GetHashCode() const;
+    const std::vector<std::vector<GameObject*>>& GetMapContent() const { return *MapContent; }
     int ToPosition(const MapLocation& rLocation) const { return ToPosition(rLocation, MapWidth); }
     static int ToPosition(const MapLocation& rLocation, const int width) { return ToPosition(rLocation.GetX(), rLocation.GetY(), width); }
     int ToPosition(const int x, const int y) const { return ToPosition(x, y, MapWidth); }

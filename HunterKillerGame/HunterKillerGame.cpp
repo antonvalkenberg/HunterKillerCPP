@@ -10,21 +10,23 @@
 #include "SpriteRenderer.h"
 
 void Init();
-void Render();
+void Render(HunterKillerState*);
 // GLFW function declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // The Width of the screen
-const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_WIDTH = 792;
 // The height of the screen
 const unsigned int SCREEN_HEIGHT = 600;
 
 SpriteRenderer* pRenderer;
+int SPRITE_SIZE = 24;
+std::vector<int>* foundation = new std::vector<int>();
 
 int main()
 {
-#pragma region Window setup
+	#pragma region Window setup
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -51,7 +53,7 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-#pragma endregion
+	#pragma endregion
 
 	auto* pActions = new std::vector<HunterKillerAction*>();
 	auto* pActionResults = new std::vector<std::string>();
@@ -101,7 +103,7 @@ int main()
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		Render();
+		Render(pState);
 
 		glfwSwapBuffers(window);
 
@@ -125,12 +127,122 @@ void Init()
     // set render-specific controls
     pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load textures
+	#pragma region Units
     ResourceManager::LoadTexture("textures/infected_p1_0.png", true, "infected_p1_0");
+	ResourceManager::LoadTexture("textures/medic_p1_0.png", true, "medic_p1_0");
+	ResourceManager::LoadTexture("textures/soldier_p1_0.png", true, "soldier_p1_0");
+	#pragma endregion
+	#pragma region Bases
+	ResourceManager::LoadTexture("textures/base_p1_0.png", false, "base_p1_0");
+	#pragma endregion
+	#pragma region Doors
+	ResourceManager::LoadTexture("textures/door_closed.png", false, "door_closed");
+	ResourceManager::LoadTexture("textures/door_open.png", true, "door_open");
+	#pragma endregion
+	#pragma region Floors
+	ResourceManager::LoadTexture("textures/floor_0.png", false, "floor_0");
+	ResourceManager::LoadTexture("textures/floor_1.png", false, "floor_1");
+	ResourceManager::LoadTexture("textures/floor_2.png", false, "floor_2");
+	ResourceManager::LoadTexture("textures/floor_3.png", false, "floor_3");
+	ResourceManager::LoadTexture("textures/floor_4.png", false, "floor_4");
+	ResourceManager::LoadTexture("textures/floor_5.png", false, "floor_5");
+	ResourceManager::LoadTexture("textures/floor_6.png", false, "floor_6");
+	ResourceManager::LoadTexture("textures/floor_7.png", false, "floor_7");
+	#pragma endregion
+	#pragma region Space
+	ResourceManager::LoadTexture("textures/space_3.png", false, "space_3");
+	#pragma endregion
+	#pragma region Walls
+	ResourceManager::LoadTexture("textures/wall_single.png", false, "wall_single");
+	#pragma endregion
+
+	// Randomize floor tiles
+	std::uniform_int_distribution<int> uniform_dist(0, 7);
+	int tilesOnScreen = ((SCREEN_HEIGHT / SPRITE_SIZE) + 1) * ((SCREEN_WIDTH / SPRITE_SIZE) + 1);
+	for (int i = 0; i < tilesOnScreen; i++)
+	{
+		foundation->push_back(uniform_dist(HunterKillerConstants::RNG));
+	}
 }
 
-void Render()
+void Render(HunterKillerState* pState)
 {
-	pRenderer->DrawSprite(ResourceManager::GetTexture("infected_p1_0"), glm::vec2(0.0f, 0.0f), glm::vec2(100.0f, 100.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	auto& rMap = pState->GetMap();
+	int mapRenderWidth = rMap.GetMapWidth() * SPRITE_SIZE;
+	int mapRenderHeight = rMap.GetMapHeight() * SPRITE_SIZE;
+	auto& rMapContent = rMap.GetMapContent();
+	for (int i = 0; i < rMapContent.size(); i++)
+	{
+		auto* pMapFeature = static_cast<MapFeature*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX));
+		auto* pUnit = static_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
+		auto& rMapLocation = rMap.ToLocation(i);
+		int x = rMapLocation.GetX() * SPRITE_SIZE;
+		int y = rMapLocation.GetY() * SPRITE_SIZE;
+
+		switch (pMapFeature->GetType()) {
+		case FLOOR:
+			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			break;
+		case WALL:
+			pRenderer->DrawSprite(ResourceManager::GetTexture("wall_single"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			break;
+		case DOOR_CLOSED:
+			pRenderer->DrawSprite(ResourceManager::GetTexture("door_closed"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			break;
+		case DOOR_OPEN: // Open doors need a floor as background
+			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			break;
+		case SPACE:
+			pRenderer->DrawSprite(ResourceManager::GetTexture("space_3"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			break;
+		default:
+			// We're dealing with a structure...
+			auto* pStructure = static_cast<Structure*>(pMapFeature);
+			switch (pStructure->GetStructureType()) {
+			case STRUCTURE_BASE:
+
+			case STRUCTURE_OBJECTIVE:
+
+			case STRUCTURE_OUTPOST:
+
+			case STRUCTURE_STRONGHOLD:
+				pRenderer->DrawSprite(ResourceManager::GetTexture("base_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
+			}
+			break;
+		}
+
+		//TODO: add decals on floor/wall tiles
+
+		if (pUnit) {
+			switch (pUnit->GetType()) {
+			case UNIT_INFECTED:
+				pRenderer->DrawSprite(ResourceManager::GetTexture("infected_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
+			case UNIT_MEDIC:
+				pRenderer->DrawSprite(ResourceManager::GetTexture("medic_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
+			case UNIT_SOLDIER:
+				pRenderer->DrawSprite(ResourceManager::GetTexture("soldier_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
+			}
+		}
+	}
+	/*
+	int foundationIndex = 0;
+	for (int y = 0; y < SCREEN_HEIGHT; y++)
+	{
+		for (int x = 0; x < SCREEN_WIDTH; x++)
+		{
+			if (x % 24 == 0 && y % 24 == 0) {
+				std::string floorTexture = std::format("floor_{0:d}", foundation->at(foundationIndex));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(floorTexture), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(24.0f, 24.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				++foundationIndex;
+			}
+		}
+	}
+	*/
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)

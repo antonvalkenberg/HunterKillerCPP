@@ -19,6 +19,7 @@ public:
     bool GetIsWalkable() const { return IsWalkable; }
     void SetWalkable(const bool isWalkable) { IsWalkable = isWalkable; }
     bool GetIsBlockingLOS() const { return IsBlockingLOS; }
+    virtual TileType GetType() = 0;
 private:
     bool IsDestructible = HunterKillerConstants::MAPFEATURE_DEFAULT_DESTRUCTIBLE;
     bool IsWalkable = HunterKillerConstants::MAPFEATURE_DEFAULT_WALKABLE;

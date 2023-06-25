@@ -12,5 +12,6 @@ public:
     ~Wall() override = default;
     Wall* Copy() override { return new Wall(*this); }
     std::string ToString() override { return std::format("{}", static_cast<char>(WALL)); }
+    TileType GetType() override { return TileType::WALL; }
 };
 
