@@ -13,6 +13,7 @@
 void Init();
 void Render(HunterKillerState*);
 bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
+int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
 // GLFW function declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -203,27 +204,24 @@ void Render(HunterKillerState* pState)
 			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		case WALL: {
-			auto* pFeatures = new std::vector<std::vector<MapFeature*>>();
-			pFeatures->resize(3);
-			for (std::vector<MapFeature*>& rFeaturesRow : *pFeatures) {	
-				rFeaturesRow.resize(3);
-			}
-			rMap.GetMapFeaturesAround(pMapFeature->GetLocation(), *pFeatures);
-			// Bitwise OR because masks are all single powers of 2 (2^0, 2^1, etc)
-			int wallMask = isWalled(*pFeatures, 1, 0) ? UP_MASK : 0;
-			wallMask += isWalled(*pFeatures, 2, 1) ? RIGHT_MASK : 0;
-			wallMask += isWalled(*pFeatures, 1, 2) ? DOWN_MASK : 0;
-			wallMask += isWalled(*pFeatures, 0, 1) ? LEFT_MASK : 0;
+			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		}
-		case DOOR_CLOSED:
-			pRenderer->DrawSprite(ResourceManager::GetTexture("door_closed"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+		case DOOR_CLOSED: {
+			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
+			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
+			pRenderer->DrawSprite(ResourceManager::GetTexture("door_closed"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
-		case DOOR_OPEN: // Open doors need a floor as background
+		}
+		case DOOR_OPEN: {
+			// Open doors need a floor as background
 			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
+			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
+			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
+		}
 		case SPACE:
 			pRenderer->DrawSprite(ResourceManager::GetTexture("space_3"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
@@ -265,6 +263,22 @@ void Render(HunterKillerState* pState)
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
 bool isWalled(std::vector<std::vector<MapFeature*>>& rFeatures, int x, int y) {
 	return rFeatures[y].at(x) && (dynamic_cast<Wall*>(rFeatures[y].at(x)) || dynamic_cast<Door*>(rFeatures[y].at(x)));
+}
+
+int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation) {
+	auto* pFeatures = new std::vector<std::vector<MapFeature*>>();
+	pFeatures->resize(3);
+	for (std::vector<MapFeature*>& rFeaturesRow : *pFeatures) {	
+		rFeaturesRow.resize(3);
+	}
+	rMap.GetMapFeaturesAround(rLocation, *pFeatures);
+	// Bitwise OR because masks are all single powers of 2 (2^0, 2^1, etc)
+	int wallMask = isWalled(*pFeatures, 1, 0) ? UP_MASK : 0;
+	wallMask += isWalled(*pFeatures, 2, 1) ? RIGHT_MASK : 0;
+	wallMask += isWalled(*pFeatures, 1, 2) ? DOWN_MASK : 0;
+	wallMask += isWalled(*pFeatures, 0, 1) ? LEFT_MASK : 0;
+	delete pFeatures; pFeatures = nullptr;
+	return wallMask;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
