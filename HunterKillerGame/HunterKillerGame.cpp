@@ -164,24 +164,24 @@ void Init()
 	#pragma endregion
 	#pragma region Bases
 	ResourceManager::LoadTexture("textures/structures/base_p1_0.png", false, "base_p1_0");
-	ResourceManager::LoadTexture("textures/structures/base_p1_1.png", false, "base_p1_1");
-	ResourceManager::LoadTexture("textures/structures/base_p1_2.png", false, "base_p1_2");
-	ResourceManager::LoadTexture("textures/structures/base_p1_3.png", false, "base_p1_3");
+	ResourceManager::LoadTexture("textures/structures/base_p1_1.png", true, "base_p1_1");
+	ResourceManager::LoadTexture("textures/structures/base_p1_2.png", true, "base_p1_2");
+	ResourceManager::LoadTexture("textures/structures/base_p1_3.png", true, "base_p1_3");
 	ResourceManager::LoadTexture("textures/structures/base_p2_0.png", false, "base_p2_0");
-	ResourceManager::LoadTexture("textures/structures/base_p2_1.png", false, "base_p2_1");
-	ResourceManager::LoadTexture("textures/structures/base_p2_2.png", false, "base_p2_2");
-	ResourceManager::LoadTexture("textures/structures/base_p2_3.png", false, "base_p2_3");
+	ResourceManager::LoadTexture("textures/structures/base_p2_1.png", true, "base_p2_1");
+	ResourceManager::LoadTexture("textures/structures/base_p2_2.png", true, "base_p2_2");
+	ResourceManager::LoadTexture("textures/structures/base_p2_3.png", true, "base_p2_3");
 	ResourceManager::LoadTexture("textures/structures/base_p3_0.png", false, "base_p3_0");
-	ResourceManager::LoadTexture("textures/structures/base_p3_1.png", false, "base_p3_1");
-	ResourceManager::LoadTexture("textures/structures/base_p3_2.png", false, "base_p3_2");
-	ResourceManager::LoadTexture("textures/structures/base_p3_3.png", false, "base_p3_3");
+	ResourceManager::LoadTexture("textures/structures/base_p3_1.png", true, "base_p3_1");
+	ResourceManager::LoadTexture("textures/structures/base_p3_2.png", true, "base_p3_2");
+	ResourceManager::LoadTexture("textures/structures/base_p3_3.png", true, "base_p3_3");
 	ResourceManager::LoadTexture("textures/structures/base_p4_0.png", false, "base_p4_0");
-	ResourceManager::LoadTexture("textures/structures/base_p4_1.png", false, "base_p4_1");
-	ResourceManager::LoadTexture("textures/structures/base_p4_2.png", false, "base_p4_2");
-	ResourceManager::LoadTexture("textures/structures/base_p4_3.png", false, "base_p4_3");
-	ResourceManager::LoadTexture("textures/structures/base_p5_1.png", false, "base_p5_1");
-	ResourceManager::LoadTexture("textures/structures/base_p5_2.png", false, "base_p5_2");
-	ResourceManager::LoadTexture("textures/structures/base_p5_3.png", false, "base_p5_3");
+	ResourceManager::LoadTexture("textures/structures/base_p4_1.png", true, "base_p4_1");
+	ResourceManager::LoadTexture("textures/structures/base_p4_2.png", true, "base_p4_2");
+	ResourceManager::LoadTexture("textures/structures/base_p4_3.png", true, "base_p4_3");
+	ResourceManager::LoadTexture("textures/structures/base_p5_1.png", true, "base_p5_1");
+	ResourceManager::LoadTexture("textures/structures/base_p5_2.png", true, "base_p5_2");
+	ResourceManager::LoadTexture("textures/structures/base_p5_3.png", true, "base_p5_3");
 	#pragma endregion
 	#pragma region Doors
 	ResourceManager::LoadTexture("textures/map/door_closed.png", false, "door_closed");
@@ -311,13 +311,16 @@ void Render(HunterKillerState* pState)
 			auto* pStructure = dynamic_cast<Structure*>(pMapFeature);
 			switch (pStructure->GetStructureType()) {
 			case STRUCTURE_BASE:
-
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
 			case STRUCTURE_OBJECTIVE:
-
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_3", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
 			case STRUCTURE_OUTPOST:
-
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_1", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
 			case STRUCTURE_STRONGHOLD:
-				pRenderer->DrawSprite(ResourceManager::GetTexture("base_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_2", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 				break;
 			}
 			break;
