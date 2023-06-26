@@ -14,6 +14,7 @@ void Init();
 void Render(HunterKillerState*);
 bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
 int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
+int sample(double weight, int collectionSize);
 // GLFW function declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -25,7 +26,7 @@ const unsigned int SCREEN_HEIGHT = 600;
 
 SpriteRenderer* pRenderer;
 int SPRITE_SIZE = 24;
-std::vector<int>* foundation = new std::vector<int>();
+std::vector<int>* pFloorVariations = new std::vector<int>();
 const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 
 int main()
@@ -177,11 +178,12 @@ void Init()
 	#pragma endregion
 
 	// Randomize floor tiles
-	std::uniform_int_distribution<int> uniform_dist(0, 7);
+	std::normal_distribution<double> normalDistribution(0.0, 1.0);
 	int tilesOnScreen = ((SCREEN_HEIGHT / SPRITE_SIZE) + 1) * ((SCREEN_WIDTH / SPRITE_SIZE) + 1);
+	//pFloorVariations->resize(tilesOnScreen);
 	for (int i = 0; i < tilesOnScreen; i++)
 	{
-		foundation->push_back(uniform_dist(HunterKillerConstants::RNG));
+		pFloorVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 8));
 	}
 }
 
@@ -201,7 +203,8 @@ void Render(HunterKillerState* pState)
 
 		switch (pMapFeature->GetType()) {
 		case FLOOR:
-			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			//pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		case WALL: {
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
@@ -272,13 +275,22 @@ int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation) {
 		rFeaturesRow.resize(3);
 	}
 	rMap.GetMapFeaturesAround(rLocation, *pFeatures);
-	// Bitwise OR because masks are all single powers of 2 (2^0, 2^1, etc)
 	int wallMask = isWalled(*pFeatures, 1, 0) ? UP_MASK : 0;
 	wallMask += isWalled(*pFeatures, 2, 1) ? RIGHT_MASK : 0;
 	wallMask += isWalled(*pFeatures, 1, 2) ? DOWN_MASK : 0;
 	wallMask += isWalled(*pFeatures, 0, 1) ? LEFT_MASK : 0;
 	delete pFeatures; pFeatures = nullptr;
 	return wallMask;
+}
+
+/** Grabs all regions from the skin under the key and samples from them with the current weight. */
+int sample(double weight, int collectionSize) {
+	// Simple stop once we sample on the weight.
+	for (int i = 0; i < collectionSize; i++) {
+		if (weight < 1 + i * 0.2f)
+			return i;
+	}
+	return 0;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
