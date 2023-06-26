@@ -127,22 +127,61 @@ int main()
 
 void Init()
 {
-	// load shaders
+	// Load shaders
     ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.frag", nullptr, "sprite");
-    // configure shaders
+    // Configure shaders
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT), 0.0f, -1.0f, 1.0f);
     ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
-    // set render-specific controls
+    // Set render-specific controls
     pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
-    // load textures
+    // Load textures
 	#pragma region Units
     ResourceManager::LoadTexture("textures/units/infected_p1_0.png", true, "infected_p1_0");
+	ResourceManager::LoadTexture("textures/units/infected_p1_1.png", true, "infected_p1_1");
+	ResourceManager::LoadTexture("textures/units/infected_p2_0.png", true, "infected_p2_0");
+	ResourceManager::LoadTexture("textures/units/infected_p2_1.png", true, "infected_p2_1");
+	ResourceManager::LoadTexture("textures/units/infected_p3_0.png", true, "infected_p3_0");
+	ResourceManager::LoadTexture("textures/units/infected_p3_1.png", true, "infected_p3_1");
+	ResourceManager::LoadTexture("textures/units/infected_p4_0.png", true, "infected_p4_0");
+	ResourceManager::LoadTexture("textures/units/infected_p4_1.png", true, "infected_p4_1");
 	ResourceManager::LoadTexture("textures/units/medic_p1_0.png", true, "medic_p1_0");
+	ResourceManager::LoadTexture("textures/units/medic_p1_1.png", true, "medic_p1_1");
+	ResourceManager::LoadTexture("textures/units/medic_p2_0.png", true, "medic_p2_0");
+	ResourceManager::LoadTexture("textures/units/medic_p2_1.png", true, "medic_p2_1");
+	ResourceManager::LoadTexture("textures/units/medic_p3_0.png", true, "medic_p3_0");
+	ResourceManager::LoadTexture("textures/units/medic_p3_1.png", true, "medic_p3_1");
+	ResourceManager::LoadTexture("textures/units/medic_p4_0.png", true, "medic_p4_0");
+	ResourceManager::LoadTexture("textures/units/medic_p4_1.png", true, "medic_p4_1");
 	ResourceManager::LoadTexture("textures/units/soldier_p1_0.png", true, "soldier_p1_0");
+	ResourceManager::LoadTexture("textures/units/soldier_p1_1.png", true, "soldier_p1_1");
+	ResourceManager::LoadTexture("textures/units/soldier_p2_0.png", true, "soldier_p2_0");
+	ResourceManager::LoadTexture("textures/units/soldier_p2_1.png", true, "soldier_p2_1");
+	ResourceManager::LoadTexture("textures/units/soldier_p3_0.png", true, "soldier_p3_0");
+	ResourceManager::LoadTexture("textures/units/soldier_p3_1.png", true, "soldier_p3_1");
+	ResourceManager::LoadTexture("textures/units/soldier_p4_0.png", true, "soldier_p4_0");
+	ResourceManager::LoadTexture("textures/units/soldier_p4_1.png", true, "soldier_p4_1");
 	#pragma endregion
 	#pragma region Bases
 	ResourceManager::LoadTexture("textures/structures/base_p1_0.png", false, "base_p1_0");
+	ResourceManager::LoadTexture("textures/structures/base_p1_1.png", false, "base_p1_1");
+	ResourceManager::LoadTexture("textures/structures/base_p1_2.png", false, "base_p1_2");
+	ResourceManager::LoadTexture("textures/structures/base_p1_3.png", false, "base_p1_3");
+	ResourceManager::LoadTexture("textures/structures/base_p2_0.png", false, "base_p2_0");
+	ResourceManager::LoadTexture("textures/structures/base_p2_1.png", false, "base_p2_1");
+	ResourceManager::LoadTexture("textures/structures/base_p2_2.png", false, "base_p2_2");
+	ResourceManager::LoadTexture("textures/structures/base_p2_3.png", false, "base_p2_3");
+	ResourceManager::LoadTexture("textures/structures/base_p3_0.png", false, "base_p3_0");
+	ResourceManager::LoadTexture("textures/structures/base_p3_1.png", false, "base_p3_1");
+	ResourceManager::LoadTexture("textures/structures/base_p3_2.png", false, "base_p3_2");
+	ResourceManager::LoadTexture("textures/structures/base_p3_3.png", false, "base_p3_3");
+	ResourceManager::LoadTexture("textures/structures/base_p4_0.png", false, "base_p4_0");
+	ResourceManager::LoadTexture("textures/structures/base_p4_1.png", false, "base_p4_1");
+	ResourceManager::LoadTexture("textures/structures/base_p4_2.png", false, "base_p4_2");
+	ResourceManager::LoadTexture("textures/structures/base_p4_3.png", false, "base_p4_3");
+	ResourceManager::LoadTexture("textures/structures/base_p5_1.png", false, "base_p5_1");
+	ResourceManager::LoadTexture("textures/structures/base_p5_2.png", false, "base_p5_2");
+	ResourceManager::LoadTexture("textures/structures/base_p5_3.png", false, "base_p5_3");
 	#pragma endregion
 	#pragma region Doors
 	ResourceManager::LoadTexture("textures/map/door_closed.png", false, "door_closed");
@@ -284,18 +323,36 @@ void Render(HunterKillerState* pState)
 			break;
 		}
 
-		//TODO: add decals on floor/wall tiles
-
 		if (pUnit) {
+			// Since our Unit's sprites are originally facing WEST, other orientations need mirroring or rotation.
+			bool mirror = false;
+			float unitRotation = 0.0f;
+			switch (pUnit->GetOrientation()) {
+			case NORTH:
+				x = x + 4;
+				unitRotation = 90.0f;
+				break;
+			case SOUTH:
+				x = x - 4;
+				unitRotation = 270.0f;
+				break;
+			case EAST:
+				y = y - 4;
+				mirror = true;
+				break;
+			case WEST:
+				y = y - 4;
+				break;
+			}
 			switch (pUnit->GetType()) {
 			case UNIT_INFECTED:
-				pRenderer->DrawSprite(ResourceManager::GetTexture("infected_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("infected_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
 				break;
 			case UNIT_MEDIC:
-				pRenderer->DrawSprite(ResourceManager::GetTexture("medic_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("medic_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
 				break;
 			case UNIT_SOLDIER:
-				pRenderer->DrawSprite(ResourceManager::GetTexture("soldier_p1_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("soldier_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
 				break;
 			}
 		}
