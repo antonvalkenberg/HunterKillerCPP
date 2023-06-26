@@ -8,9 +8,11 @@
 #include "../HunterKillerBots/RandomBot.h"
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
+#include "../HunterKiller/Wall.h"
 
 void Init();
 void Render(HunterKillerState*);
+bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
 // GLFW function declarations
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -23,6 +25,7 @@ const unsigned int SCREEN_HEIGHT = 600;
 SpriteRenderer* pRenderer;
 int SPRITE_SIZE = 24;
 std::vector<int>* foundation = new std::vector<int>();
+const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 
 int main()
 {
@@ -153,6 +156,22 @@ void Init()
 	ResourceManager::LoadTexture("textures/space_3.png", false, "space_3");
 	#pragma endregion
 	#pragma region Walls
+	ResourceManager::LoadTexture("textures/wall_0.png", false, "wall_0");
+	ResourceManager::LoadTexture("textures/wall_1.png", false, "wall_1");
+	ResourceManager::LoadTexture("textures/wall_2.png", false, "wall_2");
+	ResourceManager::LoadTexture("textures/wall_3.png", false, "wall_3");
+	ResourceManager::LoadTexture("textures/wall_4.png", false, "wall_4");
+	ResourceManager::LoadTexture("textures/wall_5.png", false, "wall_5");
+	ResourceManager::LoadTexture("textures/wall_6.png", false, "wall_6");
+	ResourceManager::LoadTexture("textures/wall_7.png", false, "wall_7");
+	ResourceManager::LoadTexture("textures/wall_8.png", false, "wall_8");
+	ResourceManager::LoadTexture("textures/wall_9.png", false, "wall_9");
+	ResourceManager::LoadTexture("textures/wall_10.png", false, "wall_10");
+	ResourceManager::LoadTexture("textures/wall_11.png", false, "wall_11");
+	ResourceManager::LoadTexture("textures/wall_12.png", false, "wall_12");
+	ResourceManager::LoadTexture("textures/wall_13.png", false, "wall_13");
+	ResourceManager::LoadTexture("textures/wall_14.png", false, "wall_14");
+	ResourceManager::LoadTexture("textures/wall_15.png", false, "wall_15");
 	ResourceManager::LoadTexture("textures/wall_single.png", false, "wall_single");
 	#pragma endregion
 
@@ -173,8 +192,8 @@ void Render(HunterKillerState* pState)
 	auto& rMapContent = rMap.GetMapContent();
 	for (int i = 0; i < rMapContent.size(); i++)
 	{
-		auto* pMapFeature = static_cast<MapFeature*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX));
-		auto* pUnit = static_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
+		auto* pMapFeature = dynamic_cast<MapFeature*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX));
+		auto* pUnit = dynamic_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
 		auto& rMapLocation = rMap.ToLocation(i);
 		int x = rMapLocation.GetX() * SPRITE_SIZE;
 		int y = rMapLocation.GetY() * SPRITE_SIZE;
@@ -183,9 +202,21 @@ void Render(HunterKillerState* pState)
 		case FLOOR:
 			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
-		case WALL:
-			pRenderer->DrawSprite(ResourceManager::GetTexture("wall_single"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+		case WALL: {
+			auto* pFeatures = new std::vector<std::vector<MapFeature*>>();
+			pFeatures->resize(3);
+			for (std::vector<MapFeature*>& rFeaturesRow : *pFeatures) {	
+				rFeaturesRow.resize(3);
+			}
+			rMap.GetMapFeaturesAround(pMapFeature->GetLocation(), *pFeatures);
+			// Bitwise OR because masks are all single powers of 2 (2^0, 2^1, etc)
+			int wallMask = isWalled(*pFeatures, 1, 0) ? UP_MASK : 0;
+			wallMask += isWalled(*pFeatures, 2, 1) ? RIGHT_MASK : 0;
+			wallMask += isWalled(*pFeatures, 1, 2) ? DOWN_MASK : 0;
+			wallMask += isWalled(*pFeatures, 0, 1) ? LEFT_MASK : 0;
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
+		}
 		case DOOR_CLOSED:
 			pRenderer->DrawSprite(ResourceManager::GetTexture("door_closed"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
@@ -198,7 +229,7 @@ void Render(HunterKillerState* pState)
 			break;
 		default:
 			// We're dealing with a structure...
-			auto* pStructure = static_cast<Structure*>(pMapFeature);
+			auto* pStructure = dynamic_cast<Structure*>(pMapFeature);
 			switch (pStructure->GetStructureType()) {
 			case STRUCTURE_BASE:
 
@@ -229,20 +260,11 @@ void Render(HunterKillerState* pState)
 			}
 		}
 	}
-	/*
-	int foundationIndex = 0;
-	for (int y = 0; y < SCREEN_HEIGHT; y++)
-	{
-		for (int x = 0; x < SCREEN_WIDTH; x++)
-		{
-			if (x % 24 == 0 && y % 24 == 0) {
-				std::string floorTexture = std::format("floor_{0:d}", foundation->at(foundationIndex));
-				pRenderer->DrawSprite(ResourceManager::GetTexture(floorTexture), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(24.0f, 24.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-				++foundationIndex;
-			}
-		}
-	}
-	*/
+}
+
+/** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
+bool isWalled(std::vector<std::vector<MapFeature*>>& rFeatures, int x, int y) {
+	return rFeatures[y].at(x) && (dynamic_cast<Wall*>(rFeatures[y].at(x)) || dynamic_cast<Door*>(rFeatures[y].at(x)));
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
