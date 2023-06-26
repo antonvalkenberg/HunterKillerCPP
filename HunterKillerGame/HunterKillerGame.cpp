@@ -133,48 +133,51 @@ void Init()
     pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load textures
 	#pragma region Units
-    ResourceManager::LoadTexture("textures/infected_p1_0.png", true, "infected_p1_0");
-	ResourceManager::LoadTexture("textures/medic_p1_0.png", true, "medic_p1_0");
-	ResourceManager::LoadTexture("textures/soldier_p1_0.png", true, "soldier_p1_0");
+    ResourceManager::LoadTexture("textures/units/infected_p1_0.png", true, "infected_p1_0");
+	ResourceManager::LoadTexture("textures/units/medic_p1_0.png", true, "medic_p1_0");
+	ResourceManager::LoadTexture("textures/units/soldier_p1_0.png", true, "soldier_p1_0");
 	#pragma endregion
 	#pragma region Bases
-	ResourceManager::LoadTexture("textures/base_p1_0.png", false, "base_p1_0");
+	ResourceManager::LoadTexture("textures/structures/base_p1_0.png", false, "base_p1_0");
 	#pragma endregion
 	#pragma region Doors
-	ResourceManager::LoadTexture("textures/door_closed.png", false, "door_closed");
-	ResourceManager::LoadTexture("textures/door_open.png", true, "door_open");
+	ResourceManager::LoadTexture("textures/map/door_closed.png", false, "door_closed");
+	ResourceManager::LoadTexture("textures/map/door_open.png", true, "door_open");
 	#pragma endregion
 	#pragma region Floors
-	ResourceManager::LoadTexture("textures/floor_0.png", false, "floor_0");
-	ResourceManager::LoadTexture("textures/floor_1.png", false, "floor_1");
-	ResourceManager::LoadTexture("textures/floor_2.png", false, "floor_2");
-	ResourceManager::LoadTexture("textures/floor_3.png", false, "floor_3");
-	ResourceManager::LoadTexture("textures/floor_4.png", false, "floor_4");
-	ResourceManager::LoadTexture("textures/floor_5.png", false, "floor_5");
-	ResourceManager::LoadTexture("textures/floor_6.png", false, "floor_6");
-	ResourceManager::LoadTexture("textures/floor_7.png", false, "floor_7");
+	ResourceManager::LoadTexture("textures/map/floor_0.png", false, "floor_0");
+	ResourceManager::LoadTexture("textures/map/floor_1.png", false, "floor_1");
+	ResourceManager::LoadTexture("textures/map/floor_2.png", false, "floor_2");
+	ResourceManager::LoadTexture("textures/map/floor_3.png", false, "floor_3");
+	ResourceManager::LoadTexture("textures/map/floor_4.png", false, "floor_4");
+	ResourceManager::LoadTexture("textures/map/floor_5.png", false, "floor_5");
+	ResourceManager::LoadTexture("textures/map/floor_6.png", false, "floor_6");
+	ResourceManager::LoadTexture("textures/map/floor_7.png", false, "floor_7");
 	#pragma endregion
 	#pragma region Space
-	ResourceManager::LoadTexture("textures/space_3.png", false, "space_3");
+	ResourceManager::LoadTexture("textures/map/space_3.png", false, "space_3");
 	#pragma endregion
 	#pragma region Walls
-	ResourceManager::LoadTexture("textures/wall_0.png", false, "wall_0");
-	ResourceManager::LoadTexture("textures/wall_1.png", false, "wall_1");
-	ResourceManager::LoadTexture("textures/wall_2.png", false, "wall_2");
-	ResourceManager::LoadTexture("textures/wall_3.png", false, "wall_3");
-	ResourceManager::LoadTexture("textures/wall_4.png", false, "wall_4");
-	ResourceManager::LoadTexture("textures/wall_5.png", false, "wall_5");
-	ResourceManager::LoadTexture("textures/wall_6.png", false, "wall_6");
-	ResourceManager::LoadTexture("textures/wall_7.png", false, "wall_7");
-	ResourceManager::LoadTexture("textures/wall_8.png", false, "wall_8");
-	ResourceManager::LoadTexture("textures/wall_9.png", false, "wall_9");
-	ResourceManager::LoadTexture("textures/wall_10.png", false, "wall_10");
-	ResourceManager::LoadTexture("textures/wall_11.png", false, "wall_11");
-	ResourceManager::LoadTexture("textures/wall_12.png", false, "wall_12");
-	ResourceManager::LoadTexture("textures/wall_13.png", false, "wall_13");
-	ResourceManager::LoadTexture("textures/wall_14.png", false, "wall_14");
-	ResourceManager::LoadTexture("textures/wall_15.png", false, "wall_15");
-	ResourceManager::LoadTexture("textures/wall_single.png", false, "wall_single");
+	ResourceManager::LoadTexture("textures/map/wall_0.png", false, "wall_0");
+	ResourceManager::LoadTexture("textures/map/wall_1.png", false, "wall_1");
+	ResourceManager::LoadTexture("textures/map/wall_2.png", false, "wall_2");
+	ResourceManager::LoadTexture("textures/map/wall_3.png", false, "wall_3");
+	ResourceManager::LoadTexture("textures/map/wall_4.png", false, "wall_4");
+	ResourceManager::LoadTexture("textures/map/wall_5.png", false, "wall_5");
+	ResourceManager::LoadTexture("textures/map/wall_6.png", false, "wall_6");
+	ResourceManager::LoadTexture("textures/map/wall_7.png", false, "wall_7");
+	ResourceManager::LoadTexture("textures/map/wall_8.png", false, "wall_8");
+	ResourceManager::LoadTexture("textures/map/wall_9.png", false, "wall_9");
+	ResourceManager::LoadTexture("textures/map/wall_10.png", false, "wall_10");
+	ResourceManager::LoadTexture("textures/map/wall_11.png", false, "wall_11");
+	ResourceManager::LoadTexture("textures/map/wall_12.png", false, "wall_12");
+	ResourceManager::LoadTexture("textures/map/wall_13.png", false, "wall_13");
+	ResourceManager::LoadTexture("textures/map/wall_14.png", false, "wall_14");
+	ResourceManager::LoadTexture("textures/map/wall_15.png", false, "wall_15");
+	ResourceManager::LoadTexture("textures/map/wall_single.png", false, "wall_single");
+	#pragma endregion
+	#pragma region Decals
+	ResourceManager::LoadTexture("textures/decals/wall_shadow.png", true, "wall_shadow");
 	#pragma endregion
 
 	// Randomize floor tiles
@@ -202,10 +205,14 @@ void Render(HunterKillerState* pState)
 		int y = rMapLocation.GetY() * SPRITE_SIZE;
 
 		switch (pMapFeature->GetType()) {
-		case FLOOR:
+		case FLOOR: {
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-			//pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			// Floors can have shadow from Walls in some cases
+			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
+			if ((wallMask & UP_MASK) != 0)
+				pRenderer->DrawSprite(ResourceManager::GetTexture("wall_shadow"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
+		}
 		case WALL: {
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
