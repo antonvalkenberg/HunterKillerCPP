@@ -9,8 +9,9 @@
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
 #include "../HunterKiller/Wall.h"
+#include "stb_image.h"
 
-void Init();
+void InitRendering();
 void Render(HunterKillerState*);
 bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
 int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
@@ -19,12 +20,9 @@ int sample(double weight, int collectionSize);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
-// The Width of the screen
-const unsigned int SCREEN_WIDTH = 792;
-// The height of the screen
-const unsigned int SCREEN_HEIGHT = 600;
-
 SpriteRenderer* pRenderer;
+unsigned int SCREEN_WIDTH = 0;
+unsigned int SCREEN_HEIGHT = 0;
 int SPRITE_SIZE = 24;
 std::vector<int>* pFloorVariations = new std::vector<int>();
 std::vector<int>* pFloorDecorations = new std::vector<int>();
@@ -35,6 +33,18 @@ const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 
 int main()
 {
+	// initialize game
+	// ---------------
+	auto* pActions = new std::vector<HunterKillerAction*>();
+	auto* pActionResults = new std::vector<std::string>();
+	auto* pFactory = new HunterKillerStateFactory();
+	auto* pPlayer1Name = new std::string("A");
+	auto* pPlayer2Name = new std::string("B");
+    const auto* pPlayerNames = new std::vector{ pPlayer1Name, pPlayer2Name };
+	HunterKillerState* pState = pFactory->GenerateInitialState(*pPlayerNames);
+	SCREEN_WIDTH = pState->GetMap().GetMapWidth() * SPRITE_SIZE;
+	SCREEN_HEIGHT = pState->GetMap().GetMapHeight() * SPRITE_SIZE;
+
 	#pragma region Window setup
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -42,7 +52,10 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, false);
 
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hunter Killer", nullptr, nullptr);
+	// Window Title
+	// ------------
+	std::string windowTitle = std::format("Hunter Killer | {0}", pState->GetMap().GetName());
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, windowTitle.c_str(), nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// glad: load all OpenGL function pointers
@@ -62,19 +75,16 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Window Icon
+	// -----------
+	GLFWimage images[1]{};
+	images[0].pixels = stbi_load("textures/units/infected_p1_0.png", &images[0].width, &images[0].height, 0, 4); //rgba channels 
+	glfwSetWindowIcon(window, 1, images); 
+	stbi_image_free(images[0].pixels);
+
 	#pragma endregion
 
-	auto* pActions = new std::vector<HunterKillerAction*>();
-	auto* pActionResults = new std::vector<std::string>();
-	auto* pFactory = new HunterKillerStateFactory();
-	auto* pPlayer1Name = new std::string("A");
-	auto* pPlayer2Name = new std::string("B");
-    const auto* pPlayerNames = new std::vector{ pPlayer1Name, pPlayer2Name };
-
-	// initialize game
-	// ---------------
-	Init();
-	HunterKillerState* pState = pFactory->GenerateInitialState(*pPlayerNames);
+	InitRendering();
 
 	auto* bot = new RandomBot();
 
@@ -125,7 +135,7 @@ int main()
 	return 0;
 }
 
-void Init()
+void InitRendering()
 {
 	// Load shaders
     ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.frag", nullptr, "sprite");
@@ -242,7 +252,7 @@ void Init()
 
 	// Randomize tiles
 	std::normal_distribution<double> normalDistribution(0.0, 1.0);
-	int tilesOnScreen = ((SCREEN_HEIGHT / SPRITE_SIZE) + 1) * ((SCREEN_WIDTH / SPRITE_SIZE) + 1);
+	int tilesOnScreen = (SCREEN_HEIGHT / SPRITE_SIZE) * (SCREEN_WIDTH / SPRITE_SIZE);
 	for (int i = 0; i < tilesOnScreen; i++) {
 		pFloorVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 8));
 		pFloorDecorations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 4));
