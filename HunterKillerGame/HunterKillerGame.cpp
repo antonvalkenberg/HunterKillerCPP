@@ -27,6 +27,10 @@ const unsigned int SCREEN_HEIGHT = 600;
 SpriteRenderer* pRenderer;
 int SPRITE_SIZE = 24;
 std::vector<int>* pFloorVariations = new std::vector<int>();
+std::vector<int>* pFloorDecorations = new std::vector<int>();
+std::vector<int>* pSpaceVariations = new std::vector<int>();
+std::vector<int>* pWallVerticalVariations = new std::vector<int>();
+std::vector<int>* pWallHorizontalVariations = new std::vector<int>();
 const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 
 int main()
@@ -155,6 +159,9 @@ void Init()
 	ResourceManager::LoadTexture("textures/map/floor_7.png", false, "floor_7");
 	#pragma endregion
 	#pragma region Space
+	ResourceManager::LoadTexture("textures/map/space_0.png", false, "space_0");
+	ResourceManager::LoadTexture("textures/map/space_1.png", false, "space_1");
+	ResourceManager::LoadTexture("textures/map/space_2.png", false, "space_2");
 	ResourceManager::LoadTexture("textures/map/space_3.png", false, "space_3");
 	#pragma endregion
 	#pragma region Walls
@@ -164,11 +171,21 @@ void Init()
 	ResourceManager::LoadTexture("textures/map/wall_3.png", false, "wall_3");
 	ResourceManager::LoadTexture("textures/map/wall_4.png", false, "wall_4");
 	ResourceManager::LoadTexture("textures/map/wall_5.png", false, "wall_5");
+	ResourceManager::LoadTexture("textures/map/wall_5_0.png", false, "wall_5_0");
+	ResourceManager::LoadTexture("textures/map/wall_5_1.png", false, "wall_5_1");
+	ResourceManager::LoadTexture("textures/map/wall_5_2.png", false, "wall_5_2");
+	ResourceManager::LoadTexture("textures/map/wall_5_3.png", false, "wall_5_3");
 	ResourceManager::LoadTexture("textures/map/wall_6.png", false, "wall_6");
 	ResourceManager::LoadTexture("textures/map/wall_7.png", false, "wall_7");
 	ResourceManager::LoadTexture("textures/map/wall_8.png", false, "wall_8");
 	ResourceManager::LoadTexture("textures/map/wall_9.png", false, "wall_9");
 	ResourceManager::LoadTexture("textures/map/wall_10.png", false, "wall_10");
+	ResourceManager::LoadTexture("textures/map/wall_10_0.png", false, "wall_10_0");
+	ResourceManager::LoadTexture("textures/map/wall_10_1.png", false, "wall_10_1");
+	ResourceManager::LoadTexture("textures/map/wall_10_2.png", false, "wall_10_2");
+	ResourceManager::LoadTexture("textures/map/wall_10_3.png", false, "wall_10_3");
+	ResourceManager::LoadTexture("textures/map/wall_10_4.png", false, "wall_10_4");
+	ResourceManager::LoadTexture("textures/map/wall_10_5.png", false, "wall_10_5");
 	ResourceManager::LoadTexture("textures/map/wall_11.png", false, "wall_11");
 	ResourceManager::LoadTexture("textures/map/wall_12.png", false, "wall_12");
 	ResourceManager::LoadTexture("textures/map/wall_13.png", false, "wall_13");
@@ -177,16 +194,22 @@ void Init()
 	ResourceManager::LoadTexture("textures/map/wall_single.png", false, "wall_single");
 	#pragma endregion
 	#pragma region Decals
+	ResourceManager::LoadTexture("textures/decals/cobweb_3.png", true, "cobweb_3");
+	ResourceManager::LoadTexture("textures/decals/cobweb_6.png", true, "cobweb_6");
+	ResourceManager::LoadTexture("textures/decals/cobweb_9.png", true, "cobweb_9");
+	ResourceManager::LoadTexture("textures/decals/cobweb_12.png", true, "cobweb_12");
 	ResourceManager::LoadTexture("textures/decals/wall_shadow.png", true, "wall_shadow");
 	#pragma endregion
 
-	// Randomize floor tiles
+	// Randomize tiles
 	std::normal_distribution<double> normalDistribution(0.0, 1.0);
 	int tilesOnScreen = ((SCREEN_HEIGHT / SPRITE_SIZE) + 1) * ((SCREEN_WIDTH / SPRITE_SIZE) + 1);
-	//pFloorVariations->resize(tilesOnScreen);
-	for (int i = 0; i < tilesOnScreen; i++)
-	{
+	for (int i = 0; i < tilesOnScreen; i++) {
 		pFloorVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 8));
+		pFloorDecorations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 4));
+		pSpaceVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 4));
+		pWallVerticalVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 4));
+		pWallHorizontalVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 6));
 	}
 }
 
@@ -206,16 +229,25 @@ void Render(HunterKillerState* pState)
 
 		switch (pMapFeature->GetType()) {
 		case FLOOR: {
-			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-			// Floors can have shadow from Walls in some cases
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			// Cobwebs can only be shown on wallMasks 3, 6, 9, 12
+			// TODO: cobwebs seem to mess up rendering of some floor tiles
+			//if (wallMask != 15 && wallMask % 3 == 0 && pFloorDecorations->at(i) > 0)
+				//pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("cobweb_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			// Floors can have shadow from Walls in some cases
 			if ((wallMask & UP_MASK) != 0)
 				pRenderer->DrawSprite(ResourceManager::GetTexture("wall_shadow"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		}
 		case WALL: {
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
-			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			if (wallMask != 5 && wallMask != 10) {
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				break;
+			}
+			int variation = wallMask == 5 ? pWallVerticalVariations->at(i) : pWallHorizontalVariations->at(i);
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}_{1}", wallMask, variation)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		}
 		case DOOR_CLOSED: {
@@ -233,7 +265,7 @@ void Render(HunterKillerState* pState)
 			break;
 		}
 		case SPACE:
-			pRenderer->DrawSprite(ResourceManager::GetTexture("space_3"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("space_{0}", pSpaceVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		default:
 			// We're dealing with a structure...
