@@ -1,15 +1,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "stb_image.h"
 
 #include "../HunterKiller/HunterKillerRules.h"
 #include "../HunterKiller/HunterKillerStateFactory.h"
+#include "../HunterKiller/Wall.h"
 #include "../HunterKillerBots/BaseBot.h"
 #include "../HunterKillerBots/QuickRandomBot.h"
 #include "../HunterKillerBots/RandomBot.h"
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
-#include "../HunterKiller/Wall.h"
-#include "stb_image.h"
+#include "TextRenderer.h"
 
 void InitRendering();
 void Render(HunterKillerState*, HunterKillerAction*);
@@ -21,6 +22,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 SpriteRenderer* pRenderer;
+TextRenderer* pText;
 unsigned int SCREEN_WIDTH = 0;
 unsigned int SCREEN_HEIGHT = 0;
 int SPRITE_SIZE = 24;
@@ -115,7 +117,7 @@ int main()
 
 		//std::cout << pState->GetMap().ToString() << std::endl;
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		finishedGame = pResult->FinishedGame;
 
 		// render
@@ -145,6 +147,8 @@ void InitRendering()
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
     // Set render-specific controls
     pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
+	pText = new TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    pText->Load("fonts/font.ttf", 24);
     // Load textures
 	#pragma region Units
     ResourceManager::LoadTexture("textures/units/infected_p1_0.png", true, "infected_p1_0");
@@ -374,6 +378,9 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("soldier_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
 				break;
 			}
+
+			if (pUnit->GetCurrentHP() < pUnit->GetMaxHP())
+				pText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x + 2.0f, y + 2.0f, 0.4f, glm::vec3(1.0f, 0.0f, 0.0f));
 		}
 	}
 
@@ -417,6 +424,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 									continue;
 								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(rLocation.GetX() * 1.0f, rLocation.GetY() * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 							}
+							delete pSoldierAOE; pSoldierAOE = nullptr;
 							break;
 						}
 					}
@@ -424,6 +432,9 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			}
 		}
 	}
+		
+    // render text (don't include in postprocessing)
+	pText->RenderText(std::format("Player 1 score: {0:d} --- Player 2 score: {1:d}", pState->GetPlayer(0)->GetScore(), pState->GetPlayer(1)->GetScore()), 5.0f, 5.0f, 0.5f);
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */

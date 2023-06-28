@@ -140,6 +140,7 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="StbImageFile.cpp" />
+    <ClCompile Include="TextRenderer.cpp" />
     <ClCompile Include="Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SpriteRenderer.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="TextRenderer.h" />
     <ClInclude Include="Texture2D.h" />
   </ItemGroup>
   <ItemGroup>
