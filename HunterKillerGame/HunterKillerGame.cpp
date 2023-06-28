@@ -12,7 +12,7 @@
 #include "stb_image.h"
 
 void InitRendering();
-void Render(HunterKillerState*);
+void Render(HunterKillerState*, HunterKillerAction*);
 bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
 int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
 int sample(double weight, int collectionSize);
@@ -115,14 +115,14 @@ int main()
 
 		//std::cout << pState->GetMap().ToString() << std::endl;
 
-		//std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		finishedGame = pResult->FinishedGame;
 
 		// render
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		Render(pState);
+		Render(pState, pAction);
 
 		glfwSwapBuffers(window);
 
@@ -243,6 +243,10 @@ void InitRendering()
 	ResourceManager::LoadTexture("textures/map/wall_single.png", false, "wall_single");
 	#pragma endregion
 	#pragma region Decals
+	ResourceManager::LoadTexture("textures/decals/aoe.png", true, "aoe");
+	ResourceManager::LoadTexture("textures/decals/attack.png", true, "attack");
+	ResourceManager::LoadTexture("textures/decals/heal.png", true, "heal");
+	ResourceManager::LoadTexture("textures/decals/melee.png", true, "melee");
 	ResourceManager::LoadTexture("textures/decals/cobweb_3.png", true, "cobweb_3");
 	ResourceManager::LoadTexture("textures/decals/cobweb_6.png", true, "cobweb_6");
 	ResourceManager::LoadTexture("textures/decals/cobweb_9.png", true, "cobweb_9");
@@ -262,11 +266,9 @@ void InitRendering()
 	}
 }
 
-void Render(HunterKillerState* pState)
+void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 {
 	auto& rMap = pState->GetMap();
-	int mapRenderWidth = rMap.GetMapWidth() * SPRITE_SIZE;
-	int mapRenderHeight = rMap.GetMapHeight() * SPRITE_SIZE;
 	auto& rMapContent = rMap.GetMapContent();
 	for (int i = 0; i < rMapContent.size(); i++)
 	{
@@ -371,6 +373,54 @@ void Render(HunterKillerState* pState)
 			case UNIT_SOLDIER:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("soldier_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
 				break;
+			}
+		}
+	}
+
+	if (pAction) {
+		for (auto* pOrder : *(pAction->GetOrders())) {
+			UnitOrder* pUnitOrder = dynamic_cast<UnitOrder*>(pOrder);
+			if (pUnitOrder) {
+				UnitOrderType type = pUnitOrder->GetOrderType();
+				UnitType actorType = pUnitOrder->GetUnitType();
+				std::optional<MapLocation> oTarget = pUnitOrder->GetTargetLocation();
+				
+				//TODO: draw action-types
+				//auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
+				
+				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
+					int targetX = oTarget.value().GetX() * SPRITE_SIZE;
+					int targetY = oTarget.value().GetY() * SPRITE_SIZE;
+					if (type == ATTACK) {
+						switch (actorType) {
+						case UNIT_INFECTED:
+							pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							break;
+						case UNIT_MEDIC:
+						case UNIT_SOLDIER:
+							pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							break;
+						}
+					} else if (type == ATTACK_SPECIAL) {
+						switch (actorType) {
+						case UNIT_INFECTED:
+							break;
+						case UNIT_MEDIC:
+							pRenderer->DrawSprite(ResourceManager::GetTexture("heal"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							break;
+						case UNIT_SOLDIER:
+							auto* pSoldierAOE = new std::unordered_set<MapLocation, MapLocationHash>();
+							rMap.GetAreaAround(oTarget.value(), true, *pSoldierAOE);
+							for (auto& rLocation : *pSoldierAOE) {
+								MapFeature* pFeature = rMap.GetFeatureAtLocation(rLocation);
+								if (dynamic_cast<Wall*>(pFeature))
+									continue;
+								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(rLocation.GetX() * 1.0f, rLocation.GetY() * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							}
+							break;
+						}
+					}
+				}
 			}
 		}
 	}

@@ -15,6 +15,7 @@ public:
     ~UnitOrder() override = default;
     [[nodiscard]] std::optional<MapLocation> GetTargetLocation() const { return TargetLocation; }
     UnitOrderType GetOrderType() const { return OrderType; }
+    UnitType GetUnitType() const { return TypeOfUnit; }
     bool IsAttackOrder() const { return OrderType == ATTACK || OrderType == ATTACK_SPECIAL; }
     static UnitOrder* RotateUnit(const Unit& rUnit, bool clockwise);
     static UnitOrder* RotateUnit(const Unit& rUnit, Rotation rotation);
