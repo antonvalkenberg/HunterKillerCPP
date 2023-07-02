@@ -25,7 +25,8 @@ SpriteRenderer* pRenderer;
 TextRenderer* pText;
 unsigned int SCREEN_WIDTH = 0;
 unsigned int SCREEN_HEIGHT = 0;
-int SPRITE_SIZE = 24;
+const int SPRITE_SIZE = 24;
+const float TEXT_OFFSET = 2.0f;
 std::vector<int>* pFloorVariations = new std::vector<int>();
 std::vector<int>* pFloorDecorations = new std::vector<int>();
 std::vector<int>* pSpaceVariations = new std::vector<int>();
@@ -131,9 +132,25 @@ int main()
 		delete pStateCopy; pStateCopy = nullptr;
 		delete pResult; pResult = nullptr;
 	} while (!finishedGame && !glfwWindowShouldClose(window));
-
-	delete pRenderer; pRenderer = nullptr;
+	
 	glfwTerminate();
+	#pragma region Cleanup
+	delete bot; bot = nullptr;
+	delete pWallHorizontalVariations; pWallHorizontalVariations = nullptr;
+	delete pWallVerticalVariations; pWallVerticalVariations = nullptr;
+	delete pSpaceVariations; pSpaceVariations = nullptr;
+	delete pFloorDecorations; pFloorDecorations = nullptr;
+	delete pFloorVariations; pFloorVariations = nullptr;
+	delete pText; pText = nullptr;
+	delete pRenderer; pRenderer = nullptr;
+	delete pPlayerNames; pPlayerNames = nullptr;
+	delete pPlayer2Name; pPlayer2Name = nullptr;
+	delete pPlayer1Name; pPlayer1Name = nullptr;
+	delete pFactory; pFactory = nullptr;
+	delete pActionResults; pActionResults = nullptr;
+	delete pActions; pActions = nullptr;
+	#pragma endregion
+
 	return 0;
 }
 
@@ -277,7 +294,6 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	for (int i = 0; i < rMapContent.size(); i++)
 	{
 		auto* pMapFeature = dynamic_cast<MapFeature*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX));
-		auto* pUnit = dynamic_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
 		auto& rMapLocation = rMap.ToLocation(i);
 		int x = rMapLocation.GetX() * SPRITE_SIZE;
 		int y = rMapLocation.GetY() * SPRITE_SIZE;
@@ -313,7 +329,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			break;
 		}
 		case DOOR_OPEN: {
-			// Open doors need a floor as background
+			// Open doors need a Floor as background
 			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
@@ -324,11 +340,12 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("space_{0}", pSpaceVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 			break;
 		default:
-			// We're dealing with a structure...
+			// We're dealing with a Structure
 			auto* pStructure = dynamic_cast<Structure*>(pMapFeature);
 			switch (pStructure->GetStructureType()) {
 			case STRUCTURE_BASE:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x + TEXT_OFFSET, y + (SPRITE_SIZE / 2) - TEXT_OFFSET, 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
 				break;
 			case STRUCTURE_OUTPOST:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_1", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -345,7 +362,8 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			}
 			break;
 		}
-
+		
+		auto* pUnit = dynamic_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
 		if (pUnit) {
 			// Since our Unit's sprites are originally facing WEST, other orientations need mirroring or rotation.
 			bool mirror = false;

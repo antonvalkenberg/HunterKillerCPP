@@ -67,5 +67,11 @@
     <None Include="shaders\sprite.vs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\text.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\text.vs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
