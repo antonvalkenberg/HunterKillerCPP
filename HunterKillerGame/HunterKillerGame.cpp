@@ -27,12 +27,19 @@ unsigned int SCREEN_WIDTH = 0;
 unsigned int SCREEN_HEIGHT = 0;
 const int SPRITE_SIZE = 24;
 const float TEXT_OFFSET = 2.0f;
+const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
+const glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
+const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
+const glm::vec3 COLOR_GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
+const glm::vec3 COLOR_BLUE = glm::vec3(0.0f, 0.0f, 1.0f);
+const glm::vec3 COLOR_CYAN = glm::vec3(0.0f, 1.0f, 1.0f);
+const glm::vec3 COLOR_PURPLE = glm::vec3(1.0f, 0.0f, 1.0f);
+const glm::vec3 COLOR_YELLOW = glm::vec3(1.0f, 1.0f, 0.0f);
 std::vector<int>* pFloorVariations = new std::vector<int>();
 std::vector<int>* pFloorDecorations = new std::vector<int>();
 std::vector<int>* pSpaceVariations = new std::vector<int>();
 std::vector<int>* pWallVerticalVariations = new std::vector<int>();
 std::vector<int>* pWallHorizontalVariations = new std::vector<int>();
-const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 
 int main()
 {
@@ -118,7 +125,7 @@ int main()
 
 		//std::cout << pState->GetMap().ToString() << std::endl;
 
-		//std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		finishedGame = pResult->FinishedGame;
 
 		// render
@@ -301,65 +308,68 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 		switch (pMapFeature->GetType()) {
 		case FLOOR: {
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
-			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			// Cobwebs can only be shown on wallMasks 3, 6, 9, 12
 			// TODO: cobwebs seem to mess up rendering of some floor tiles
 			//if (wallMask != 15 && wallMask % 3 == 0 && pFloorDecorations->at(i) > 0)
-				//pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("cobweb_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				//pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("cobweb_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			// Floors can have shadow from Walls in some cases
 			auto* pFeatureUpNorth = rMap.GetFeatureAtLocation(*rMap.GetLocationInDirection(rMapLocation, NORTH, 1));
 			if ((wallMask & UP_MASK) != 0 && (dynamic_cast<Wall*>(pFeatureUpNorth) || (dynamic_cast<Door*>(pFeatureUpNorth) && !dynamic_cast<Door*>(pFeatureUpNorth)->IsOpen())))
-				pRenderer->DrawSprite(ResourceManager::GetTexture("wall_shadow"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture("wall_shadow"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			break;
 		}
 		case WALL: {
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			if (wallMask != 5 && wallMask != 10) {
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 				break;
 			}
 			int variation = wallMask == 5 ? pWallVerticalVariations->at(i) : pWallHorizontalVariations->at(i);
-			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}_{1}", wallMask, variation)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("wall_{0}_{1}", wallMask, variation)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			break;
 		}
 		case DOOR_CLOSED: {
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
-			pRenderer->DrawSprite(ResourceManager::GetTexture("door_closed"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture("door_closed"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, COLOR_WHITE);
 			break;
 		}
 		case DOOR_OPEN: {
 			// Open doors need a Floor as background
-			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
-			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, COLOR_WHITE);
+			int time = dynamic_cast<Door*>(pMapFeature)->GetOpenTimer();
+			pText->RenderText(std::format("{0:d}", time), x + TEXT_OFFSET, y + TEXT_OFFSET, 0.4f, COLOR_CYAN);
 			break;
 		}
 		case SPACE:
-			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("space_{0}", pSpaceVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("space_{0}", pSpaceVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			break;
 		default:
 			// We're dealing with a Structure
 			auto* pStructure = dynamic_cast<Structure*>(pMapFeature);
 			switch (pStructure->GetStructureType()) {
 			case STRUCTURE_BASE:
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-				pText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x + TEXT_OFFSET, y + (SPRITE_SIZE / 2) - TEXT_OFFSET, 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+				pText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x + TEXT_OFFSET, y + (SPRITE_SIZE / 2) - TEXT_OFFSET, 0.4f, COLOR_CYAN);
 				break;
 			case STRUCTURE_OUTPOST:
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_1", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_1", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 				break;
 			// Rest of the structures need a floor as background
 			case STRUCTURE_STRONGHOLD:
-				pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_2", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_2", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 				break;
 			case STRUCTURE_OBJECTIVE:
-				pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_3", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				pRenderer->DrawSprite(ResourceManager::GetTexture("floor_0"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_3", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 				break;
 			}
+			pText->RenderText(std::format("{0:d}", pStructure->GetCurrentHP()), x + TEXT_OFFSET, y + TEXT_OFFSET, 0.4f, COLOR_RED);
 			break;
 		}
 		
@@ -387,18 +397,20 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			}
 			switch (pUnit->GetType()) {
 			case UNIT_INFECTED:
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("infected_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("infected_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, COLOR_WHITE, mirror);
 				break;
 			case UNIT_MEDIC:
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("medic_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("medic_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, COLOR_WHITE, mirror);
 				break;
 			case UNIT_SOLDIER:
-				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("soldier_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, glm::vec3(1.0f, 1.0f, 1.0f), mirror);
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("soldier_p{0}_0", pUnit->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), unitRotation, COLOR_WHITE, mirror);
 				break;
 			}
 
 			if (pUnit->GetCurrentHP() < pUnit->GetMaxHP())
-				pText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x + 2.0f, y + 2.0f, 0.4f, glm::vec3(1.0f, 0.0f, 0.0f));
+				pText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x + TEXT_OFFSET, y + TEXT_OFFSET, 0.4f, COLOR_RED);
+			if (pUnit->GetSpecialAttackCooldown() > 0)
+				pText->RenderText(std::format("{0:d}", pUnit->GetSpecialAttackCooldown()), x + TEXT_OFFSET, y + (2 * SPRITE_SIZE / 3), 0.4f, COLOR_CYAN);
 		}
 	}
 
@@ -419,11 +431,11 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 					if (type == ATTACK) {
 						switch (actorType) {
 						case UNIT_INFECTED:
-							pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 							break;
 						case UNIT_MEDIC:
 						case UNIT_SOLDIER:
-							pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 							break;
 						}
 					} else if (type == ATTACK_SPECIAL) {
@@ -431,7 +443,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 						case UNIT_INFECTED:
 							break;
 						case UNIT_MEDIC:
-							pRenderer->DrawSprite(ResourceManager::GetTexture("heal"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+							pRenderer->DrawSprite(ResourceManager::GetTexture("heal"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 							break;
 						case UNIT_SOLDIER:
 							auto* pSoldierAOE = new std::unordered_set<MapLocation, MapLocationHash>();
@@ -440,7 +452,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 								MapFeature* pFeature = rMap.GetFeatureAtLocation(rLocation);
 								if (dynamic_cast<Wall*>(pFeature))
 									continue;
-								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(rLocation.GetX() * 1.0f, rLocation.GetY() * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(rLocation.GetX() * 1.0f, rLocation.GetY() * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 							}
 							delete pSoldierAOE; pSoldierAOE = nullptr;
 							break;
