@@ -26,7 +26,7 @@ TextRenderer* pText;
 unsigned int SCREEN_WIDTH = 0;
 unsigned int SCREEN_HEIGHT = 0;
 const int SPRITE_SIZE = 24;
-const float TEXT_OFFSET = 2.0f;
+const float TEXT_OFFSET = 8.0f;
 const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 const glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
 const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -310,9 +310,8 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			int wallMask = determineWallMask(rMap, pMapFeature->GetLocation());
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("floor_{0}", pFloorVariations->at(i))), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			// Cobwebs can only be shown on wallMasks 3, 6, 9, 12
-			// TODO: cobwebs seem to mess up rendering of some floor tiles
-			//if (wallMask != 15 && wallMask % 3 == 0 && pFloorDecorations->at(i) > 0)
-				//pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("cobweb_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+			if ((wallMask == 3 || wallMask == 6 || wallMask == 9 || wallMask == 12)&& pFloorDecorations->at(i) > 0)
+				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("cobweb_{0}", wallMask)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			// Floors can have shadow from Walls in some cases
 			auto* pFeatureUpNorth = rMap.GetFeatureAtLocation(*rMap.GetLocationInDirection(rMapLocation, NORTH, 1));
 			if ((wallMask & UP_MASK) != 0 && (dynamic_cast<Wall*>(pFeatureUpNorth) || (dynamic_cast<Door*>(pFeatureUpNorth) && !dynamic_cast<Door*>(pFeatureUpNorth)->IsOpen())))
@@ -342,7 +341,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
 			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, COLOR_WHITE);
 			int time = dynamic_cast<Door*>(pMapFeature)->GetOpenTimer();
-			pText->RenderText(std::format("{0:d}", time), x + TEXT_OFFSET, y + TEXT_OFFSET, 0.4f, COLOR_CYAN);
+			pText->RenderText(std::format("{0:d}", time), x + TEXT_OFFSET, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
 			break;
 		}
 		case SPACE:
@@ -354,7 +353,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			switch (pStructure->GetStructureType()) {
 			case STRUCTURE_BASE:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
-				pText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x + TEXT_OFFSET, y + (SPRITE_SIZE / 2) - TEXT_OFFSET, 0.4f, COLOR_CYAN);
+				pText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x * 1.0f, y * 1.0f, 0.4f, COLOR_CYAN);
 				break;
 			case STRUCTURE_OUTPOST:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_1", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
@@ -369,7 +368,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_3", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 				break;
 			}
-			pText->RenderText(std::format("{0:d}", pStructure->GetCurrentHP()), x + TEXT_OFFSET, y + TEXT_OFFSET, 0.4f, COLOR_RED);
+			pText->RenderText(std::format("{0:d}", pStructure->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_RED);
 			break;
 		}
 		
@@ -408,9 +407,9 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			}
 
 			if (pUnit->GetCurrentHP() < pUnit->GetMaxHP())
-				pText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x + TEXT_OFFSET, y + TEXT_OFFSET, 0.4f, COLOR_RED);
+				pText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_RED);
 			if (pUnit->GetSpecialAttackCooldown() > 0)
-				pText->RenderText(std::format("{0:d}", pUnit->GetSpecialAttackCooldown()), x + TEXT_OFFSET, y + (2 * SPRITE_SIZE / 3), 0.4f, COLOR_CYAN);
+				pText->RenderText(std::format("{0:d}", pUnit->GetSpecialAttackCooldown()), x + (SPRITE_SIZE - TEXT_OFFSET), y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
 		}
 	}
 
