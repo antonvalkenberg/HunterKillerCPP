@@ -29,12 +29,16 @@ const int SPRITE_SIZE = 24;
 const float TEXT_OFFSET = 8.0f;
 const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 const glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
-const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
-const glm::vec3 COLOR_GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
+const glm::vec3 COLOR_BLACK = glm::vec3(0.0f, 0.0f, 0.0f);
 const glm::vec3 COLOR_BLUE = glm::vec3(0.0f, 0.0f, 1.0f);
+const glm::vec3 COLOR_NAVY = glm::vec3(0.0f, 0.0f, 0.5f);
 const glm::vec3 COLOR_CYAN = glm::vec3(0.0f, 1.0f, 1.0f);
-const glm::vec3 COLOR_PURPLE = glm::vec3(1.0f, 0.0f, 1.0f);
+const glm::vec3 COLOR_TEAL = glm::vec3(0.0f, 0.5f, 0.5f);
+const glm::vec3 COLOR_GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
 const glm::vec3 COLOR_YELLOW = glm::vec3(1.0f, 1.0f, 0.0f);
+const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
+const glm::vec3 COLOR_PINK = glm::vec3(1.0f, 0.753f, 0.796f);
+const glm::vec3 COLOR_MAGENTA = glm::vec3(1.0f, 0.0f, 1.0f);
 std::vector<int>* pFloorVariations = new std::vector<int>();
 std::vector<int>* pFloorDecorations = new std::vector<int>();
 std::vector<int>* pSpaceVariations = new std::vector<int>();
@@ -417,12 +421,20 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 		for (auto* pOrder : *(pAction->GetOrders())) {
 			UnitOrder* pUnitOrder = dynamic_cast<UnitOrder*>(pOrder);
 			if (pUnitOrder) {
+				glm::vec3 orderTextColor = pOrder->IsAccepted() ? COLOR_GREEN : COLOR_PINK;
 				UnitOrderType type = pUnitOrder->GetOrderType();
 				UnitType actorType = pUnitOrder->GetUnitType();
 				std::optional<MapLocation> oTarget = pUnitOrder->GetTargetLocation();
 				
-				//TODO: draw action-types
-				//auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
+				auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
+				if (pActor && dynamic_cast<Unit*>(pActor)) {
+					auto* pUnit = dynamic_cast<Unit*>(pActor);
+					auto& rLocation = pUnit->GetLocation();
+					int x = (rLocation.GetX() * SPRITE_SIZE) + ((2 * SPRITE_SIZE / 3.0f) - TEXT_OFFSET);
+					int y = (rLocation.GetY() * SPRITE_SIZE) + (SPRITE_SIZE - TEXT_OFFSET);
+					
+					pText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
+				}
 				
 				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
 					int targetX = oTarget.value().GetX() * SPRITE_SIZE;
