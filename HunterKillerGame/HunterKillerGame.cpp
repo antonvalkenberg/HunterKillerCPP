@@ -23,8 +23,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 SpriteRenderer* pRenderer;
 TextRenderer* pText;
-unsigned int SCREEN_WIDTH = 0;
-unsigned int SCREEN_HEIGHT = 0;
+unsigned int SCREEN_WIDTH = 800;
+unsigned int SCREEN_HEIGHT = 600;
+unsigned int MAP_WIDTH = 0;
+unsigned int MAP_HEIGHT = 0;
 const int SPRITE_SIZE = 24;
 const float TEXT_OFFSET = 8.0f;
 const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
@@ -39,6 +41,7 @@ const glm::vec3 COLOR_YELLOW = glm::vec3(1.0f, 1.0f, 0.0f);
 const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
 const glm::vec3 COLOR_PINK = glm::vec3(1.0f, 0.753f, 0.796f);
 const glm::vec3 COLOR_MAGENTA = glm::vec3(1.0f, 0.0f, 1.0f);
+const glm::vec3 COLOR_UI_TEXT = glm::vec3(0.145f, 0.588f, 0.745f);
 std::vector<int>* pFloorVariations = new std::vector<int>();
 std::vector<int>* pFloorDecorations = new std::vector<int>();
 std::vector<int>* pSpaceVariations = new std::vector<int>();
@@ -56,8 +59,8 @@ int main()
 	auto* pPlayer2Name = new std::string("B");
     const auto* pPlayerNames = new std::vector{ pPlayer1Name, pPlayer2Name };
 	HunterKillerState* pState = pFactory->GenerateInitialState(*pPlayerNames);
-	SCREEN_WIDTH = pState->GetMap().GetMapWidth() * SPRITE_SIZE;
-	SCREEN_HEIGHT = pState->GetMap().GetMapHeight() * SPRITE_SIZE;
+	MAP_WIDTH = pState->GetMap().GetMapWidth() * SPRITE_SIZE;
+	MAP_HEIGHT = pState->GetMap().GetMapHeight() * SPRITE_SIZE;
 
 	#pragma region Window setup
 	glfwInit();
@@ -134,7 +137,7 @@ int main()
 
 		// render
 		// ------
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.824f, 0.733f, 0.545f, 0.5f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		Render(pState, pAction);
 
@@ -306,8 +309,8 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	{
 		auto* pMapFeature = dynamic_cast<MapFeature*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX));
 		auto& rMapLocation = rMap.ToLocation(i);
-		int x = rMapLocation.GetX() * SPRITE_SIZE;
-		int y = rMapLocation.GetY() * SPRITE_SIZE;
+		int x = rMapLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+		int y = rMapLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 
 		switch (pMapFeature->GetType()) {
 		case FLOOR: {
@@ -430,15 +433,15 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				if (pActor && dynamic_cast<Unit*>(pActor)) {
 					auto* pUnit = dynamic_cast<Unit*>(pActor);
 					auto& rLocation = pUnit->GetLocation();
-					int x = (rLocation.GetX() * SPRITE_SIZE) + ((2 * SPRITE_SIZE / 3.0f) - TEXT_OFFSET);
-					int y = (rLocation.GetY() * SPRITE_SIZE) + (SPRITE_SIZE - TEXT_OFFSET);
+					int x = rLocation.GetX() * SPRITE_SIZE + (2 * SPRITE_SIZE / 3) - TEXT_OFFSET + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+					int y = rLocation.GetY() * SPRITE_SIZE + SPRITE_SIZE - TEXT_OFFSET + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 					
 					pText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
 				}
 				
 				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
-					int targetX = oTarget.value().GetX() * SPRITE_SIZE;
-					int targetY = oTarget.value().GetY() * SPRITE_SIZE;
+					int targetX = oTarget.value().GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+					int targetY = oTarget.value().GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 					if (type == ATTACK) {
 						switch (actorType) {
 						case UNIT_INFECTED:
@@ -463,7 +466,9 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 								MapFeature* pFeature = rMap.GetFeatureAtLocation(rLocation);
 								if (dynamic_cast<Wall*>(pFeature))
 									continue;
-								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(rLocation.GetX() * 1.0f, rLocation.GetY() * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+								int aoeX = rLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+								int aoeY = rLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(aoeX * 1.0f, aoeY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 							}
 							delete pSoldierAOE; pSoldierAOE = nullptr;
 							break;
@@ -475,7 +480,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	}
 		
     // render text (don't include in postprocessing)
-	pText->RenderText(std::format("Player 1 score: {0:d} --- Player 2 score: {1:d}", pState->GetPlayer(0)->GetScore(), pState->GetPlayer(1)->GetScore()), 5.0f, 5.0f, 0.5f);
+	pText->RenderText(std::format("Player 1 score: {0:d} --- Player 2 score: {1:d}", pState->GetPlayer(0)->GetScore(), pState->GetPlayer(1)->GetScore()), 5.0f, 5.0f, 0.5f, COLOR_UI_TEXT);
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
