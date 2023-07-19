@@ -22,7 +22,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 SpriteRenderer* pRenderer;
-TextRenderer* pText;
+TextRenderer* pUIText;
+TextRenderer* pNumbersText;
 unsigned int SCREEN_WIDTH = 800;
 unsigned int SCREEN_HEIGHT = 600;
 unsigned int MAP_WIDTH = 0;
@@ -155,7 +156,8 @@ int main()
 	delete pSpaceVariations; pSpaceVariations = nullptr;
 	delete pFloorDecorations; pFloorDecorations = nullptr;
 	delete pFloorVariations; pFloorVariations = nullptr;
-	delete pText; pText = nullptr;
+	delete pNumbersText; pNumbersText = nullptr;
+	delete pUIText; pUIText = nullptr;
 	delete pRenderer; pRenderer = nullptr;
 	delete pPlayerNames; pPlayerNames = nullptr;
 	delete pPlayer2Name; pPlayer2Name = nullptr;
@@ -178,8 +180,10 @@ void InitRendering()
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
     // Set render-specific controls
     pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
-	pText = new TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
-    pText->Load("fonts/font.ttf", 24);
+	pUIText = new TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    pUIText->Load("fonts/font.ttf", 28);
+	pNumbersText = new TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    pNumbersText->Load("fonts/numbers.ttf", 24);
     // Load textures
 	#pragma region Units
     ResourceManager::LoadTexture("textures/units/infected_p1_0.png", true, "infected_p1_0");
@@ -348,7 +352,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			float doorRotation = wallMask == 5 ? 90.0f : 0.0f;
 			pRenderer->DrawSprite(ResourceManager::GetTexture("door_open"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), doorRotation, COLOR_WHITE);
 			int time = dynamic_cast<Door*>(pMapFeature)->GetOpenTimer();
-			pText->RenderText(std::format("{0:d}", time), x + TEXT_OFFSET, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
+			pNumbersText->RenderText(std::format("{0:d}", time), x + TEXT_OFFSET, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
 			break;
 		}
 		case SPACE:
@@ -360,7 +364,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			switch (pStructure->GetStructureType()) {
 			case STRUCTURE_BASE:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
-				pText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x * 1.0f, y * 1.0f, 0.4f, COLOR_CYAN);
+				pNumbersText->RenderText(std::format("{0:d}", pState->GetPlayer(pStructure->GetControllingPlayerID())->GetResource()), x * 1.0f, y * 1.0f, 0.4f, COLOR_CYAN);
 				break;
 			case STRUCTURE_OUTPOST:
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_1", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
@@ -375,7 +379,8 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_3", !pStructure->IsUnderControl() ? 5 : pStructure->GetControllingPlayerID() + 1)), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 				break;
 			}
-			pText->RenderText(std::format("{0:d}", pStructure->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_RED);
+			if (pStructure->GetIsDestructible())
+				pNumbersText->RenderText(std::format("{0:d}", pStructure->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_MAGENTA);
 			break;
 		}
 		
@@ -414,9 +419,9 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			}
 
 			if (pUnit->GetCurrentHP() < pUnit->GetMaxHP())
-				pText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_RED);
+				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_MAGENTA);
 			if (pUnit->GetSpecialAttackCooldown() > 0)
-				pText->RenderText(std::format("{0:d}", pUnit->GetSpecialAttackCooldown()), x + (SPRITE_SIZE - TEXT_OFFSET), y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
+				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetSpecialAttackCooldown()), x + (SPRITE_SIZE - TEXT_OFFSET), y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
 		}
 	}
 
@@ -436,7 +441,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 					int x = rLocation.GetX() * SPRITE_SIZE + (2 * SPRITE_SIZE / 3) - TEXT_OFFSET + (SCREEN_WIDTH - MAP_WIDTH) / 2;
 					int y = rLocation.GetY() * SPRITE_SIZE + SPRITE_SIZE - TEXT_OFFSET + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 					
-					pText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
+					pNumbersText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
 				}
 				
 				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
@@ -480,7 +485,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	}
 		
     // render text (don't include in postprocessing)
-	pText->RenderText(std::format("Player 1 score: {0:d} --- Player 2 score: {1:d}", pState->GetPlayer(0)->GetScore(), pState->GetPlayer(1)->GetScore()), 5.0f, 5.0f, 0.5f, COLOR_UI_TEXT);
+	pUIText->RenderText(std::format("Player 1 score: {0:d} --- Player 2 score: {1:d}", pState->GetPlayer(0)->GetScore(), pState->GetPlayer(1)->GetScore()), 5.0f, 5.0f, 1.0f, COLOR_UI_TEXT);
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
