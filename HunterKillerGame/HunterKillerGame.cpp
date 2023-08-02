@@ -24,11 +24,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 SpriteRenderer* pRenderer;
 TextRenderer* pUIText;
 TextRenderer* pNumbersText;
-unsigned int SCREEN_WIDTH = 800;
-unsigned int SCREEN_HEIGHT = 600;
+unsigned int SCREEN_WIDTH = 1080;
+unsigned int SCREEN_HEIGHT = 720;
 unsigned int MAP_WIDTH = 0;
 unsigned int MAP_HEIGHT = 0;
 const int SPRITE_SIZE = 24;
+const int BAR_SPRITE_WIDTH = 18;
+const int BAR_SPRITE_HEIGHT = 18;
+const int BAR_END_SPRITE_WIDTH = 9;
 const float TEXT_OFFSET = 8.0f;
 const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 const glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -52,13 +55,13 @@ std::vector<int>* pWallHorizontalVariations = new std::vector<int>();
 int main()
 {
 	// initialize game
-	// ---------------
+	auto* bot = new RandomBot();
 	auto* pActions = new std::vector<HunterKillerAction*>();
 	auto* pActionResults = new std::vector<std::string>();
 	auto* pFactory = new HunterKillerStateFactory();
-	auto* pPlayer1Name = new std::string("A");
-	auto* pPlayer2Name = new std::string("B");
-    const auto* pPlayerNames = new std::vector{ pPlayer1Name, pPlayer2Name };
+	auto rPlayer1Name = std::format("{0} (0)", *bot->GetBotName());
+	auto rPlayer2Name = std::format("{0} (1)", *bot->GetBotName());
+    const auto* pPlayerNames = new std::vector{ &rPlayer1Name, &rPlayer2Name };
 	HunterKillerState* pState = pFactory->GenerateInitialState(*pPlayerNames);
 	MAP_WIDTH = pState->GetMap().GetMapWidth() * SPRITE_SIZE;
 	MAP_HEIGHT = pState->GetMap().GetMapHeight() * SPRITE_SIZE;
@@ -104,17 +107,14 @@ int main()
 
 	InitRendering();
 
-	auto* bot = new RandomBot();
-
 	// deltaTime variables
-	// -------------------
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
 
+	// frame loop
 	bool finishedGame;
 	do {
 		// calculate delta time
-		// --------------------
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -137,7 +137,6 @@ int main()
 		finishedGame = pResult->FinishedGame;
 
 		// render
-		// ------
 		glClearColor(0.824f, 0.733f, 0.545f, 0.5f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		Render(pState, pAction);
@@ -150,7 +149,6 @@ int main()
 	
 	glfwTerminate();
 	#pragma region Cleanup
-	delete bot; bot = nullptr;
 	delete pWallHorizontalVariations; pWallHorizontalVariations = nullptr;
 	delete pWallVerticalVariations; pWallVerticalVariations = nullptr;
 	delete pSpaceVariations; pSpaceVariations = nullptr;
@@ -160,11 +158,10 @@ int main()
 	delete pUIText; pUIText = nullptr;
 	delete pRenderer; pRenderer = nullptr;
 	delete pPlayerNames; pPlayerNames = nullptr;
-	delete pPlayer2Name; pPlayer2Name = nullptr;
-	delete pPlayer1Name; pPlayer1Name = nullptr;
 	delete pFactory; pFactory = nullptr;
 	delete pActionResults; pActionResults = nullptr;
 	delete pActions; pActions = nullptr;
+	delete bot; bot = nullptr;
 	#pragma endregion
 
 	return 0;
@@ -181,7 +178,7 @@ void InitRendering()
     // Set render-specific controls
     pRenderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
 	pUIText = new TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
-    pUIText->Load("fonts/font.ttf", 28);
+    pUIText->Load("fonts/font.ttf", 26);
 	pNumbersText = new TextRenderer(SCREEN_WIDTH, SCREEN_HEIGHT);
     pNumbersText->Load("fonts/numbers.ttf", 24);
     // Load textures
@@ -292,10 +289,18 @@ void InitRendering()
 	ResourceManager::LoadTexture("textures/decals/cobweb_12.png", true, "cobweb_12");
 	ResourceManager::LoadTexture("textures/decals/wall_shadow.png", true, "wall_shadow");
 	#pragma endregion
+	#pragma region UI
+	ResourceManager::LoadTexture("textures/ui/bars/bar_1.png", true, "bar_1");
+	ResourceManager::LoadTexture("textures/ui/bars/bar_left_1.png", true, "bar_left_1");
+	ResourceManager::LoadTexture("textures/ui/bars/bar_right_1.png", true, "bar_right_1");
+	ResourceManager::LoadTexture("textures/ui/bars/bar_2.png", true, "bar_2");
+	ResourceManager::LoadTexture("textures/ui/bars/bar_left_2.png", true, "bar_left_2");
+	ResourceManager::LoadTexture("textures/ui/bars/bar_right_2.png", true, "bar_right_2");
+	#pragma endregion
 
 	// Randomize tiles
 	std::normal_distribution<double> normalDistribution(0.0, 1.0);
-	int tilesOnScreen = (SCREEN_HEIGHT / SPRITE_SIZE) * (SCREEN_WIDTH / SPRITE_SIZE);
+	int tilesOnScreen = (MAP_HEIGHT / SPRITE_SIZE) * (MAP_WIDTH / SPRITE_SIZE);
 	for (int i = 0; i < tilesOnScreen; i++) {
 		pFloorVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 8));
 		pFloorDecorations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 4));
@@ -484,8 +489,56 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 		}
 	}
 		
-    // render text (don't include in postprocessing)
-	pUIText->RenderText(std::format("Player 1 score: {0:d} --- Player 2 score: {1:d}", pState->GetPlayer(0)->GetScore(), pState->GetPlayer(1)->GetScore()), 5.0f, 5.0f, 1.0f, COLOR_UI_TEXT);
+    // UI text
+	int middle = SCREEN_WIDTH / 2;
+	int playerScoreYOffset = 10;
+	auto* pPlayers = pState->GetPlayers();
+	for (auto* pPlayer : *pPlayers) {
+		if (pPlayer->GetID() % 2 == 0) {
+			// IDs 0, 2
+			std::string playerInfoTextLeft = std::format("{0:d} : {1}", pPlayer->GetScore(), pPlayer->GetName());
+			pUIText->RenderText(playerInfoTextLeft, middle - (playerInfoTextLeft.length() * 14) - SPRITE_SIZE - 5, playerScoreYOffset, 1.0f, COLOR_UI_TEXT);
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pPlayer->GetID() + 1)), glm::vec2(middle - SPRITE_SIZE - 3, playerScoreYOffset - 5), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+		}
+		else {
+			// IDs 1, 3
+			std::string playerInfoTextRight = std::format("{1} : {0:d}", pPlayer->GetScore(), pPlayer->GetName());
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pPlayer->GetID() + 1)), glm::vec2(middle + 3, playerScoreYOffset - 5), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+			pUIText->RenderText(playerInfoTextRight, middle + SPRITE_SIZE + 7, playerScoreYOffset, 1.0f, COLOR_UI_TEXT);
+		}
+	}
+
+	// Score bar
+	int scoreBarYOffset = 75;
+	int fullBarsToDraw = 10;
+	int player0Score = pState->GetPlayer(0)->GetScore();
+	int player1Score = pState->GetPlayer(1)->GetScore();
+	int totalScore = player0Score + player1Score;
+	float player0ScorePercentage = player0Score / (player0Score + player1Score * 1.0f);
+	float player1ScorePercentage = player1Score / (player0Score + player1Score * 1.0f);
+	pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("bar_left_1")), glm::vec2(middle - BAR_END_SPRITE_WIDTH - (fullBarsToDraw * BAR_SPRITE_WIDTH / 2), scoreBarYOffset), glm::vec2(BAR_END_SPRITE_WIDTH * 1.0f, BAR_SPRITE_HEIGHT * 1.0f), 0.0f, COLOR_WHITE);
+	for (int i = 0; i < fullBarsToDraw; i++)
+	{
+		float fullBarXPosition = middle - (fullBarsToDraw * BAR_SPRITE_WIDTH / 2.0f) + (i * BAR_SPRITE_WIDTH);
+		if (totalScore > 0)
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("bar_{0}", i / (fullBarsToDraw * 1.0f) < player0ScorePercentage ? 1 : 2)), glm::vec2(fullBarXPosition, scoreBarYOffset), glm::vec2(BAR_SPRITE_WIDTH * 1.0f, BAR_SPRITE_HEIGHT * 1.0f), 0.0f, COLOR_WHITE);
+		else
+			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("bar_{0}", i < 5 ? 1 : 2)), glm::vec2(fullBarXPosition, scoreBarYOffset), glm::vec2(BAR_SPRITE_WIDTH * 1.0f, BAR_SPRITE_HEIGHT * 1.0f), 0.0f, COLOR_WHITE);
+	}
+	pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("bar_right_2")), glm::vec2(middle + (fullBarsToDraw * BAR_SPRITE_WIDTH / 2), scoreBarYOffset), glm::vec2(BAR_END_SPRITE_WIDTH * 1.0f, BAR_SPRITE_HEIGHT * 1.0f), 0.0f, COLOR_WHITE);
+	// Score bar text
+	if (totalScore == 0) {
+		pUIText->RenderText(std::format("{0:d}", player0Score), middle - (fullBarsToDraw * BAR_SPRITE_WIDTH / 4.0f) - 6, scoreBarYOffset + 4, 0.7f, COLOR_WHITE);
+		pUIText->RenderText(std::format("{0:d}", player1Score), middle + (fullBarsToDraw * BAR_SPRITE_WIDTH / 4.0f) - 6, scoreBarYOffset + 4, 0.7f, COLOR_WHITE);
+	}
+	if (player0Score > 0) {
+		int player0ScoreTextMiddle = middle - ((1 - player0ScorePercentage) * (fullBarsToDraw * BAR_SPRITE_WIDTH / 2.0f));
+		pUIText->RenderText(std::format("{0:d}", player0Score), player0ScoreTextMiddle - 6, scoreBarYOffset + 4, 0.7f, COLOR_WHITE);
+	}
+	if (player1Score > 0) {
+		int player1ScoreTextMiddle = middle + ((1 - player1ScorePercentage) * (fullBarsToDraw * BAR_SPRITE_WIDTH / 2.0f));
+		pUIText->RenderText(std::format("{0:d}", player1Score), player1ScoreTextMiddle - 6, scoreBarYOffset + 4, 0.7f, COLOR_WHITE);
+	}
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
