@@ -17,9 +17,10 @@ void Render(HunterKillerState*, HunterKillerAction*);
 bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
 int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
 int sample(double weight, int collectionSize);
+void process_input();
 // GLFW function declarations
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 SpriteRenderer* pRenderer;
 TextRenderer* pUIText;
@@ -51,6 +52,9 @@ std::vector<int>* pFloorDecorations = new std::vector<int>();
 std::vector<int>* pSpaceVariations = new std::vector<int>();
 std::vector<int>* pWallVerticalVariations = new std::vector<int>();
 std::vector<int>* pWallHorizontalVariations = new std::vector<int>();
+bool Keys[1024];
+bool KeysProcessed[1024];
+bool renderOrderIDs = false;
 
 int main()
 {
@@ -120,6 +124,10 @@ int main()
 		lastFrame = currentFrame;
 		glfwPollEvents();
 
+        // manage user input
+        process_input();
+
+		// update game state
         HunterKillerState* pStateCopy = pState->Copy();
 		pStateCopy->Prepare(pState->GetActivePlayerID());
 
@@ -130,8 +138,6 @@ int main()
 
 		if (!pResult->Information->empty())
 			pActionResults->push_back(std::string(*pResult->Information));
-
-		//std::cout << pState->GetMap().ToString() << std::endl;
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		finishedGame = pResult->FinishedGame;
@@ -439,6 +445,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				UnitType actorType = pUnitOrder->GetUnitType();
 				std::optional<MapLocation> oTarget = pUnitOrder->GetTargetLocation();
 				
+				if (renderOrderIDs) {
 				auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
 				if (pActor && dynamic_cast<Unit*>(pActor)) {
 					auto* pUnit = dynamic_cast<Unit*>(pActor);
@@ -447,6 +454,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 					int y = rLocation.GetY() * SPRITE_SIZE + SPRITE_SIZE - TEXT_OFFSET + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 					
 					pNumbersText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
+				}
 				}
 				
 				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
@@ -583,12 +591,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, true);
 	if (key >= 0 && key < 1024)
 	{
-		/*if (action == GLFW_PRESS)
-			Breakout.Keys[key] = true;
+		if (action == GLFW_PRESS)
+			Keys[key] = true;
 		else if (action == GLFW_RELEASE) {
-			Breakout.Keys[key] = false;
-			Breakout.KeysProcessed[key] = false;
-		}*/
+			Keys[key] = false;
+			KeysProcessed[key] = false;
+		}
+	}
+}
+
+void process_input() {
+	if (Keys[GLFW_KEY_Z] && !KeysProcessed[GLFW_KEY_Z]) {
+		renderOrderIDs = !renderOrderIDs;
+	}
+}
+
 	}
 }
 
