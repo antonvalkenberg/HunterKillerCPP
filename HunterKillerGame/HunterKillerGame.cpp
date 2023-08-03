@@ -539,6 +539,11 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 		int player1ScoreTextMiddle = middle + ((1 - player1ScorePercentage) * (fullBarsToDraw * BAR_SPRITE_WIDTH / 2.0f));
 		pUIText->RenderText(std::format("{0:d}", player1Score), player1ScoreTextMiddle - 6, scoreBarYOffset + 4, 0.7f, COLOR_WHITE);
 	}
+
+	// Round text
+	int mapEndY = rMap.GetMapHeight() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+	std::string roundText = std::format("Round: {0:d}/200", pState->GetCurrentRound());
+	pUIText->RenderText(roundText, middle - (roundText.length() * 5), mapEndY + 10, 0.7f, COLOR_WHITE);
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
