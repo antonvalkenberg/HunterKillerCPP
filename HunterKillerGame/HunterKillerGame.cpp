@@ -20,6 +20,7 @@ int sample(double weight, int collectionSize);
 void process_input();
 // GLFW function declarations
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 SpriteRenderer* pRenderer;
@@ -92,6 +93,7 @@ int main()
 	}
 
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// OpenGL configuration
@@ -123,7 +125,7 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		glfwPollEvents();
-
+				
         // manage user input
         process_input();
 
@@ -446,15 +448,15 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				std::optional<MapLocation> oTarget = pUnitOrder->GetTargetLocation();
 				
 				if (renderOrderIDs) {
-				auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
-				if (pActor && dynamic_cast<Unit*>(pActor)) {
-					auto* pUnit = dynamic_cast<Unit*>(pActor);
-					auto& rLocation = pUnit->GetLocation();
-					int x = rLocation.GetX() * SPRITE_SIZE + (2 * SPRITE_SIZE / 3) - TEXT_OFFSET + (SCREEN_WIDTH - MAP_WIDTH) / 2;
-					int y = rLocation.GetY() * SPRITE_SIZE + SPRITE_SIZE - TEXT_OFFSET + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+					auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
+					if (pActor && dynamic_cast<Unit*>(pActor)) {
+						auto* pUnit = dynamic_cast<Unit*>(pActor);
+						auto& rLocation = pUnit->GetLocation();
+						int x = rLocation.GetX() * SPRITE_SIZE + (2 * SPRITE_SIZE / 3) - TEXT_OFFSET + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+						int y = rLocation.GetY() * SPRITE_SIZE + SPRITE_SIZE - TEXT_OFFSET + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 					
-					pNumbersText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
-				}
+						pNumbersText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
+					}
 				}
 				
 				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
@@ -606,7 +608,25 @@ void process_input() {
 	}
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	auto* pMouseXD = new double();
+	auto* pMouseYD = new double();
+	glfwGetCursorPos(window, pMouseXD, pMouseYD);
+    
+	if (pMouseXD && pMouseYD) {
+		int x = std::floor(*pMouseXD);
+		int y = std::floor(*pMouseYD);
+
+		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+			std::cout << std::format("Right-click at {0:d}, {1:d}", x, y) << std::endl;
+		}
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			std::cout << std::format("Left-click at {0:d}, {1:d}", x, y) << std::endl;
+		}
 	}
+	delete pMouseYD; pMouseYD = nullptr;
+	delete pMouseXD; pMouseXD = nullptr;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
