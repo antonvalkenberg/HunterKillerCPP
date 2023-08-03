@@ -146,6 +146,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="QuickRandomBot.h" />
     <ClInclude Include="RandomBot.h" />
+    <ClInclude Include="SlightlyRandomBot.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseBot.cpp" />
@@ -158,6 +159,7 @@
     </ClCompile>
     <ClCompile Include="QuickRandomBot.cpp" />
     <ClCompile Include="RandomBot.cpp" />
+    <ClCompile Include="SlightlyRandomBot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HunterKiller\HunterKiller.vcxproj">

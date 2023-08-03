@@ -37,9 +37,9 @@ StructureOrder* BaseBot::GetRandomOrder(const HunterKillerState& rState, const S
 	return nullptr;
 }
 
-void BaseBot::FilterFriendlyFire(std::vector<UnitOrder*>& rOrders, Unit* pUnit, HunterKillerMap& rMap) {
+void BaseBot::FilterFriendlyFire(std::vector<UnitOrder*>& rOrders, Unit* pUnit, HunterKillerMap& rMap, bool includeInfectedAllyAttacks, bool includeMedicAllySpecialAttacks) {
 
-	const auto removableOrders = std::ranges::remove_if(rOrders.begin(), rOrders.end(), [pUnit, rMap](const UnitOrder* pOrder)
+	const auto removableOrders = std::ranges::remove_if(rOrders.begin(), rOrders.end(), [pUnit, rMap, includeInfectedAllyAttacks, includeMedicAllySpecialAttacks](const UnitOrder* pOrder)
 	{
 		// Skip non-attack orders
 		if (!pOrder->IsAttackOrder())
@@ -66,7 +66,7 @@ void BaseBot::FilterFriendlyFire(std::vector<UnitOrder*>& rOrders, Unit* pUnit, 
 		if (rMap.IsAttackOrderTargetingAllyUnit(*pOrder, pUnit))
 		{
 		    // Unless the order is a for an Infected, or a Medic's special attack
-			const bool goodSelfOrder = pUnit->GetType() == UNIT_INFECTED || (pUnit->GetType() == UNIT_MEDIC && pOrder->GetOrderType() == ATTACK_SPECIAL);
+			const bool goodSelfOrder = (includeInfectedAllyAttacks && pUnit->GetType() == UNIT_INFECTED) ||	(includeMedicAllySpecialAttacks && pUnit->GetType() == UNIT_MEDIC && pOrder->GetOrderType() == ATTACK_SPECIAL);
             if (!goodSelfOrder)
 			{
 				delete pOrder;

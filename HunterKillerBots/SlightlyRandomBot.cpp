@@ -1,13 +1,13 @@
 #include "pch.h"
-#include "RandomBot.h"
+#include "SlightlyRandomBot.h"
 #include "../HunterKiller/HunterKillerMoveGenerator.h"
 
-RandomBot::~RandomBot()
+SlightlyRandomBot::~SlightlyRandomBot()
 {
     delete BotName; BotName = nullptr;
 }
 
-HunterKillerAction* RandomBot::CreateRandomAction(const HunterKillerState& rState)
+HunterKillerAction* SlightlyRandomBot::CreateSlightlyRandomAction(const HunterKillerState& rState)
 {
     std::uniform_real_distribution<double> random_double(0, 1);
     auto* pRandomAction = new HunterKillerAction(rState);
@@ -29,7 +29,7 @@ HunterKillerAction* RandomBot::CreateRandomAction(const HunterKillerState& rStat
         if (random_double(HunterKillerConstants::RNG) <= NO_UNIT_ORDER_THRESHOLD)
             continue;
 
-        if (UnitOrder* pOrder = CreateRandomOrder(rState, pUnit))
+        if (UnitOrder* pOrder = CreateSlightlyRandomOrder(rState, pUnit))
             pRandomAction->TryAddOrder(pOrder);
     }
 
@@ -38,20 +38,13 @@ HunterKillerAction* RandomBot::CreateRandomAction(const HunterKillerState& rStat
     return pRandomAction;
 }
 
-/*
- * Returns a randomly selected order for the argument Unit.
- * Selects a Rotation order with 20% chance, if any are available.
- * Selects a Move order with 50% chance, if any are available.
- * Selects an Attack order in all other cases, if any are available.
- * Returns null if no orders are legal.
- */
-UnitOrder* RandomBot::CreateRandomOrder(const HunterKillerState& rState, Unit* pUnit)
+UnitOrder* SlightlyRandomBot::CreateSlightlyRandomOrder(const HunterKillerState& rState, Unit* pUnit)
 {
     auto* pLegalRotationOrders = HunterKillerMoveGenerator::GetAllLegalRotationOrders(*pUnit);
     auto* pLegalMoveOrders = HunterKillerMoveGenerator::GetAllLegalMoveOrders(rState, *pUnit);
     auto* pLegalAttackOrders = HunterKillerMoveGenerator::GetAllLegalAttackOrders(rState, *pUnit);
 
-    FilterFriendlyFire(*pLegalAttackOrders, pUnit, rState.GetMap());
+    FilterFriendlyFire(*pLegalAttackOrders, pUnit, rState.GetMap(), false);
 
     std::uniform_real_distribution<double> random_double(0, 1);
     const double attackType = random_double(HunterKillerConstants::RNG);
