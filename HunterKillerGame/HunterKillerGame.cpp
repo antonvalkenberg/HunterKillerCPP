@@ -8,6 +8,7 @@
 #include "../HunterKillerBots/BaseBot.h"
 #include "../HunterKillerBots/QuickRandomBot.h"
 #include "../HunterKillerBots/RandomBot.h"
+#include "../HunterKillerBots/SlightlyRandomBot.h"
 #include "ResourceManager.h"
 #include "SpriteRenderer.h"
 #include "TextRenderer.h"
@@ -17,7 +18,7 @@ void Render(HunterKillerState*, HunterKillerAction*);
 bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
 int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
 int sample(double weight, int collectionSize);
-void process_input();
+void process_input(HunterKillerState*);
 // GLFW function declarations
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -44,6 +45,7 @@ const glm::vec3 COLOR_CYAN = glm::vec3(0.0f, 1.0f, 1.0f);
 const glm::vec3 COLOR_TEAL = glm::vec3(0.0f, 0.5f, 0.5f);
 const glm::vec3 COLOR_GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
 const glm::vec3 COLOR_YELLOW = glm::vec3(1.0f, 1.0f, 0.0f);
+const glm::vec3 COLOR_ORANGE = glm::vec3(1.0f, 0.647f, 0.0f);
 const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
 const glm::vec3 COLOR_PINK = glm::vec3(1.0f, 0.753f, 0.796f);
 const glm::vec3 COLOR_MAGENTA = glm::vec3(1.0f, 0.0f, 1.0f);
@@ -56,11 +58,14 @@ std::vector<int>* pWallHorizontalVariations = new std::vector<int>();
 bool Keys[1024];
 bool KeysProcessed[1024];
 bool renderOrderIDs = false;
+int* pMouseLeftClick = new int[2];
+int* pMouseRightClick = new int[2];
+int selectedSquare = -1;
 
 int main()
 {
 	// initialize game
-	auto* bot = new RandomBot();
+	auto* bot = new SlightlyRandomBot();
 	auto* pActions = new std::vector<HunterKillerAction*>();
 	auto* pActionResults = new std::vector<std::string>();
 	auto* pFactory = new HunterKillerStateFactory();
@@ -127,7 +132,7 @@ int main()
 		glfwPollEvents();
 				
         // manage user input
-        process_input();
+        process_input(pState);
 
 		// update game state
         HunterKillerState* pStateCopy = pState->Copy();
@@ -157,6 +162,8 @@ int main()
 	
 	glfwTerminate();
 	#pragma region Cleanup
+	delete [] pMouseRightClick; pMouseRightClick = nullptr;
+	delete [] pMouseLeftClick; pMouseLeftClick = nullptr;
 	delete pWallHorizontalVariations; pWallHorizontalVariations = nullptr;
 	delete pWallVerticalVariations; pWallVerticalVariations = nullptr;
 	delete pSpaceVariations; pSpaceVariations = nullptr;
@@ -304,6 +311,7 @@ void InitRendering()
 	ResourceManager::LoadTexture("textures/ui/bars/bar_2.png", true, "bar_2");
 	ResourceManager::LoadTexture("textures/ui/bars/bar_left_2.png", true, "bar_left_2");
 	ResourceManager::LoadTexture("textures/ui/bars/bar_right_2.png", true, "bar_right_2");
+	ResourceManager::LoadTexture("textures/ui/select.png", true, "selected");
 	#pragma endregion
 
 	// Randomize tiles
@@ -397,6 +405,10 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			break;
 		}
 		
+		if (i == selectedSquare) {
+			pRenderer->DrawSprite(ResourceManager::GetTexture("selected"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_ORANGE);
+		}
+
 		auto* pUnit = dynamic_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
 		if (pUnit) {
 			// Since our Unit's sprites are originally facing WEST, other orientations need mirroring or rotation.
@@ -602,9 +614,48 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-void process_input() {
+bool isClickOnPlayableArea(int x, int y) {
+	int mapStartX = (SCREEN_WIDTH - MAP_WIDTH) / 2;
+	int mapStartY = (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+	int mapEndX = mapStartX + MAP_WIDTH;
+	int mapEndY = mapStartY + MAP_HEIGHT;
+	
+	return x >= mapStartX && x <= mapEndX && y >= mapStartY && y <= mapEndY;
+}
+
+int determineClickedSquareIndex(HunterKillerState* pState, int x, int y) {
+	int mapStartX = (SCREEN_WIDTH - MAP_WIDTH) / 2;
+	int mapStartY = (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+
+	int relativeMapX = std::floor((x - mapStartX) / SPRITE_SIZE);
+	int relativeMapY = std::floor((y - mapStartY) / SPRITE_SIZE);
+
+	auto& rMap = pState->GetMap();
+	int position = rMap.GetMapWidth() * relativeMapY + relativeMapX;
+	auto* pMapFeature = rMap.GetFeatureAtLocation(rMap.ToLocation(position));
+	if (pMapFeature->GetType() == SPACE || pMapFeature->GetType() == WALL)
+		return -1;
+
+	return position;
+}
+
+void process_input(HunterKillerState* pState) {
+	// Pressing z key toggles rendering of order-types on Units
 	if (Keys[GLFW_KEY_Z] && !KeysProcessed[GLFW_KEY_Z]) {
 		renderOrderIDs = !renderOrderIDs;
+		KeysProcessed[GLFW_KEY_Z] = true;
+	}
+
+	if (pMouseLeftClick[0] > 0 && pMouseLeftClick[1] > 0) {
+		selectedSquare = determineClickedSquareIndex(pState, pMouseLeftClick[0], pMouseLeftClick[1]);
+		pMouseLeftClick[0] = NULL;
+		pMouseLeftClick[1] = NULL;
+	}
+	if (pMouseRightClick[0] > 0 && pMouseRightClick[1] > 0) {
+		if (selectedSquare == determineClickedSquareIndex(pState, pMouseRightClick[0], pMouseRightClick[1]))
+			selectedSquare = -1;
+		pMouseRightClick[0] = NULL;
+		pMouseRightClick[1] = NULL;
 	}
 }
 
@@ -617,12 +668,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (pMouseXD && pMouseYD) {
 		int x = std::floor(*pMouseXD);
 		int y = std::floor(*pMouseYD);
+		bool clickedOnMap = isClickOnPlayableArea(x, y);
 
-		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-			std::cout << std::format("Right-click at {0:d}, {1:d}", x, y) << std::endl;
+		if (clickedOnMap && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			pMouseLeftClick[0] = x;
+			pMouseLeftClick[1] = y;
 		}
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-			std::cout << std::format("Left-click at {0:d}, {1:d}", x, y) << std::endl;
+		if (clickedOnMap && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+			pMouseRightClick[0] = x;
+			pMouseRightClick[1] = y;
 		}
 	}
 	delete pMouseYD; pMouseYD = nullptr;
