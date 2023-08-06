@@ -58,6 +58,7 @@ std::vector<int>* pWallHorizontalVariations = new std::vector<int>();
 bool Keys[1024];
 bool KeysProcessed[1024];
 bool renderOrderIDs = false;
+bool renderUnitIDs = false;
 int* pMouseLeftClick = new int[2];
 int* pMouseRightClick = new int[2];
 int selectedSquare = -1;
@@ -444,9 +445,11 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			}
 
 			if (pUnit->GetCurrentHP() < pUnit->GetMaxHP())
-				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x * 1.0f, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_MAGENTA);
+				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetCurrentHP()), x, y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_MAGENTA);
 			if (pUnit->GetSpecialAttackCooldown() > 0)
 				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetSpecialAttackCooldown()), x + (SPRITE_SIZE - TEXT_OFFSET), y + (SPRITE_SIZE - TEXT_OFFSET), 0.4f, COLOR_CYAN);
+			if (renderUnitIDs)
+				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetID()), x, y, 0.4f, COLOR_GREEN);
 		}
 	}
 
@@ -644,6 +647,11 @@ void process_input(HunterKillerState* pState) {
 	if (Keys[GLFW_KEY_Z] && !KeysProcessed[GLFW_KEY_Z]) {
 		renderOrderIDs = !renderOrderIDs;
 		KeysProcessed[GLFW_KEY_Z] = true;
+	}
+	// Pressing x key toggles rendering of IDs on Units
+	if (Keys[GLFW_KEY_X] && !KeysProcessed[GLFW_KEY_X]) {
+		renderUnitIDs = !renderUnitIDs;
+		KeysProcessed[GLFW_KEY_X] = true; 
 	}
 
 	if (pMouseLeftClick[0] > 0 && pMouseLeftClick[1] > 0) {
