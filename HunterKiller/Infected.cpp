@@ -1,7 +1,10 @@
 #include "Infected.h"
 
 Infected::Infected(const Infected& rInfected)
-    : Infected(rInfected.GetControllingPlayerID(), rInfected.GetLocation(), rInfected.GetMaxHP(), rInfected.GetCurrentHP(), rInfected.GetOrientation(), rInfected.GetFieldOfViewRange(), rInfected.GetFieldOfViewAngle(), rInfected.GetAttackRange(), rInfected.GetAttackDamage(), rInfected.GetSpecialAttackCooldown(), rInfected.GetSpawnCost(), rInfected.GetScoreWorth())
+    : Infected(rInfected.GetControllingPlayerID(), rInfected.GetLocation(), rInfected.GetMaxHP(), rInfected.GetCurrentHP(), rInfected.GetOrientation(),
+        rInfected.GetFieldOfViewRange(), rInfected.GetFieldOfViewAngle(),
+        rInfected.GetAttackRange(), rInfected.GetAttackDamage(), rInfected.GetSpecialAttackCooldown(),
+        rInfected.GetSpawnCost(), rInfected.GetScoreWorth())
 {
     SetID(rInfected.GetID());
     UpdateFieldOfView(new std::unordered_set(*rInfected.GetFieldOfView()));

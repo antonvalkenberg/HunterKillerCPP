@@ -144,6 +144,7 @@
     <ClCompile Include="Medic.cpp" />
     <ClCompile Include="Soldier.cpp" />
     <ClCompile Include="Structure.cpp" />
+    <ClCompile Include="TargetedUnitOrder.cpp" />
     <ClCompile Include="Unit.cpp" />
     <ClCompile Include="UnitOrder.cpp" />
     <ClCompile Include="VectorHelpFunctions.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="StringHelpFunctions.h" />
     <ClInclude Include="Structure.h" />
     <ClInclude Include="StructureOrder.h" />
+    <ClInclude Include="TargetedUnitOrder.h" />
     <ClInclude Include="Unit.h" />
     <ClInclude Include="UnitOrder.h" />
     <ClInclude Include="VectorHelpFunctions.h" />

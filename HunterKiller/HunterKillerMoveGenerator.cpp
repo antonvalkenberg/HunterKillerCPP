@@ -82,22 +82,22 @@ std::vector<UnitOrder*>* HunterKillerMoveGenerator::GetAllLegalOrders(const Hunt
     return pOrders;
 }
 
-std::vector<UnitOrder*>* HunterKillerMoveGenerator::GetAllLegalMoveOrders(const HunterKillerState& rState, const Unit& rUnit)
+std::vector<TargetedUnitOrder*>* HunterKillerMoveGenerator::GetAllLegalMoveOrders(const HunterKillerState& rState, const Unit& rUnit)
 {
-    const auto pOrders = new std::vector<UnitOrder*>();
+    const auto pOrders = new std::vector<TargetedUnitOrder*>();
     const HunterKillerMap& rMap = rState.GetMap();
     const MapLocation& rUnitLocation = rUnit.GetLocation();
 
     for (const auto direction : EnumExtensions::GetDirections())
     {
-        if (const MapLocation* pNewLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction); pNewLocation && rMap.IsMovePossible(rUnitLocation, direction))
-            pOrders->push_back(UnitOrder::MoveUnit(rUnit, *pNewLocation));
+        if (MapLocation* pNewLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction); pNewLocation && rMap.IsMovePossible(rUnitLocation, direction))
+            pOrders->push_back(TargetedUnitOrder::MoveUnit(rUnit, *pNewLocation));
     }
 
     return pOrders;
 }
 
-UnitOrder* HunterKillerMoveGenerator::GetRandomMoveOrder(const HunterKillerState& rState, const Unit& rUnit)
+TargetedUnitOrder* HunterKillerMoveGenerator::GetRandomMoveOrder(const HunterKillerState& rState, const Unit& rUnit)
 {
     const HunterKillerMap& rMap = rState.GetMap();
     const MapLocation& rUnitLocation = rUnit.GetLocation();
@@ -107,8 +107,8 @@ UnitOrder* HunterKillerMoveGenerator::GetRandomMoveOrder(const HunterKillerState
 
     for (const auto direction : directions)
     {
-        if (const MapLocation* pNewLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction); pNewLocation && rMap.IsMovePossible(rUnitLocation, direction))
-           return UnitOrder::MoveUnit(rUnit, *pNewLocation);
+        if (MapLocation* pNewLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction); pNewLocation && rMap.IsMovePossible(rUnitLocation, direction))
+           return TargetedUnitOrder::MoveUnit(rUnit, *pNewLocation);
     }
 
     return nullptr;
@@ -122,11 +122,11 @@ std::vector<UnitOrder*>* HunterKillerMoveGenerator::GetAllLegalRotationOrders(co
     return pOrders;
 }
 
-std::vector<UnitOrder*>* HunterKillerMoveGenerator::GetAllLegalAttackOrders(const HunterKillerState& rState, Unit& rUnit, const bool usePlayersFoV)
+std::vector<TargetedUnitOrder*>* HunterKillerMoveGenerator::GetAllLegalAttackOrders(const HunterKillerState& rState, Unit& rUnit, const bool usePlayersFoV)
 {
-    const auto pOrders = new std::vector<UnitOrder*>();
+    const auto pOrders = new std::vector<TargetedUnitOrder*>();
     HunterKillerMap& rMap = rState.GetMap();
-    const MapLocation& rUnitLocation = rUnit.GetLocation();
+    MapLocation& rUnitLocation = rUnit.GetLocation();
     std::unordered_set<MapLocation, MapLocationHash>* pFieldOfView;
 
     if (usePlayersFoV)
@@ -139,11 +139,11 @@ std::vector<UnitOrder*>* HunterKillerMoveGenerator::GetAllLegalAttackOrders(cons
         // Infected can only do melee attacks
         for (const Direction direction : EnumExtensions::GetDirections())
         {
-            if (const MapLocation* pTargetLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction); pTargetLocation)
-                pOrders->push_back(UnitOrder::UnitAttack(rUnit, *pTargetLocation, false));
+            if (MapLocation* pTargetLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction); pTargetLocation)
+                pOrders->push_back(TargetedUnitOrder::UnitAttack(rUnit, *pTargetLocation, false));
         }
         // Also add the Infected's own location as a possibility
-        pOrders->push_back(UnitOrder::UnitAttack(rUnit, rUnitLocation, false));
+        pOrders->push_back(TargetedUnitOrder::UnitAttack(rUnit, rUnitLocation, false));
         return pOrders;
     }
 
@@ -158,15 +158,15 @@ std::vector<UnitOrder*>* HunterKillerMoveGenerator::GetAllLegalAttackOrders(cons
                 if (const Wall* pWall = dynamic_cast<Wall*>(rMap.GetFeatureAtLocation(location)); pSoldier && pWall)
                     continue;
 
-                pOrders->push_back(UnitOrder::UnitAttack(rUnit, location, true));
+                pOrders->push_back(TargetedUnitOrder::UnitAttack(rUnit, location, true));
             }
-            pOrders->push_back(UnitOrder::UnitAttack(rUnit, location, false));
+            pOrders->push_back(TargetedUnitOrder::UnitAttack(rUnit, location, false));
         }
     }
     return pOrders;
 }
 
-UnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterKillerState& rState, Unit& rUnit, const bool usePlayersFoV, const bool useSpecial)
+TargetedUnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterKillerState& rState, Unit& rUnit, const bool usePlayersFoV, const bool useSpecial)
 {
     if (useSpecial && rUnit.GetSpecialAttackCooldown() > 0)
         return nullptr;
@@ -186,7 +186,7 @@ UnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterKillerSta
         std::ranges::shuffle(directions, HunterKillerConstants::RNG);
         for (const Direction direction : directions)
         {
-            const MapLocation* pTargetLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction);
+            MapLocation* pTargetLocation = rMap.GetAdjacentLocationInDirection(rUnitLocation, direction);
             if (!pTargetLocation)
                 continue;
 
@@ -198,13 +198,13 @@ UnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterKillerSta
 
                 if (usePlayersFoV)
                     delete pFieldOfView;
-                return UnitOrder::UnitAttack(rUnit, *pTargetLocation, false);
+                return TargetedUnitOrder::UnitAttack(rUnit, *pTargetLocation, false);
             }
 
             if (const Structure* pStructure = dynamic_cast<Structure*>(rMap.GetFeatureAtLocation(*pTargetLocation)); pStructure && pStructure->GetControllingPlayerID() != rUnit.GetControllingPlayerID()) {
                 if (usePlayersFoV)
                     delete pFieldOfView;
-                return UnitOrder::UnitAttack(rUnit, *pTargetLocation, false);
+                return TargetedUnitOrder::UnitAttack(rUnit, *pTargetLocation, false);
             }
         }
     }
@@ -253,7 +253,7 @@ UnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterKillerSta
             if (const Unit* pTargetUnit = dynamic_cast<Unit*>(pTarget); pMedic && pTargetUnit && !pTargetUnit->IsDamaged())
                 continue;
 
-            return UnitOrder::UnitAttack(rUnit, location, true);
+            return TargetedUnitOrder::UnitAttack(rUnit, location, true);
         }
 
         // Don't target friendlies
@@ -263,7 +263,7 @@ UnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterKillerSta
         if (usePlayersFoV)
             delete pFieldOfView;
         delete pLocations;
-        return UnitOrder::UnitAttack(rUnit, location, false);
+        return TargetedUnitOrder::UnitAttack(rUnit, location, false);
     }
 
     if (usePlayersFoV)
