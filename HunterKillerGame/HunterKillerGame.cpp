@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
+#include <chrono>
+#include <thread>
 
 #include "../HunterKiller/HunterKillerRules.h"
 #include "../HunterKiller/HunterKillerStateFactory.h"
@@ -460,7 +462,6 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 				glm::vec3 orderTextColor = pOrder->IsAccepted() ? COLOR_GREEN : COLOR_PINK;
 				UnitOrderType type = pUnitOrder->GetOrderType();
 				UnitType actorType = pUnitOrder->GetUnitType();
-				std::optional<MapLocation> oTarget = pUnitOrder->GetTargetLocation();
 				
 				if (renderOrderIDs) {
 					auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
@@ -473,40 +474,44 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 						pNumbersText->RenderText(std::format("{0:d}", (int)type), x, y, 0.4f, orderTextColor);
 					}
 				}
-				
-				if (oTarget.has_value() && rMap.IsOnMap(oTarget.value())) {
-					int targetX = oTarget.value().GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
-					int targetY = oTarget.value().GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
-					if (type == ATTACK) {
-						switch (actorType) {
-						case UNIT_INFECTED:
-							pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
-							break;
-						case UNIT_MEDIC:
-						case UNIT_SOLDIER:
-							pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
-							break;
-						}
-					} else if (type == ATTACK_SPECIAL) {
-						switch (actorType) {
-						case UNIT_INFECTED:
-							break;
-						case UNIT_MEDIC:
-							pRenderer->DrawSprite(ResourceManager::GetTexture("heal"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
-							break;
-						case UNIT_SOLDIER:
-							auto* pSoldierAOE = new std::unordered_set<MapLocation, MapLocationHash>();
-							rMap.GetAreaAround(oTarget.value(), true, *pSoldierAOE);
-							for (auto& rLocation : *pSoldierAOE) {
-								MapFeature* pFeature = rMap.GetFeatureAtLocation(rLocation);
-								if (dynamic_cast<Wall*>(pFeature))
-									continue;
-								int aoeX = rLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
-								int aoeY = rLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
-								pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(aoeX * 1.0f, aoeY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+
+				TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(pOrder);
+				if (pTargetedUnitOrder) {
+					auto& rTargetLocation = pTargetedUnitOrder->GetTargetLocation();
+					if (rMap.IsOnMap(rTargetLocation)) {
+						int targetX = rTargetLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+						int targetY = rTargetLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+						if (type == ATTACK) {
+							switch (actorType) {
+							case UNIT_INFECTED:
+								pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+								break;
+							case UNIT_MEDIC:
+							case UNIT_SOLDIER:
+								pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+								break;
 							}
-							delete pSoldierAOE; pSoldierAOE = nullptr;
-							break;
+						} else if (type == ATTACK_SPECIAL) {
+							switch (actorType) {
+							case UNIT_INFECTED:
+								break;
+							case UNIT_MEDIC:
+								pRenderer->DrawSprite(ResourceManager::GetTexture("heal"), glm::vec2(targetX * 1.0f, targetY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+								break;
+							case UNIT_SOLDIER:
+								auto* pSoldierAOE = new std::unordered_set<MapLocation, MapLocationHash>();
+								rMap.GetAreaAround(rTargetLocation, true, *pSoldierAOE);
+								for (auto& rLocation : *pSoldierAOE) {
+									MapFeature* pFeature = rMap.GetFeatureAtLocation(rLocation);
+									if (dynamic_cast<Wall*>(pFeature))
+										continue;
+									int aoeX = rLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+									int aoeY = rLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+									pRenderer->DrawSprite(ResourceManager::GetTexture("aoe"), glm::vec2(aoeX * 1.0f, aoeY * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+								}
+								delete pSoldierAOE; pSoldierAOE = nullptr;
+								break;
+							}
 						}
 					}
 				}
