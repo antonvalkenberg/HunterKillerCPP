@@ -6,9 +6,9 @@ class MapFeature :
 {
 public:
     MapFeature() = default;
-    MapFeature(MapLocation& rMapLocation, const bool destructible, const bool blockingLOS, const bool walkable) : GameObject(rMapLocation, HunterKillerConstants::MAPFEATURE_DEFAULT_HP), IsDestructible(destructible), IsWalkable(walkable), IsBlockingLOS(blockingLOS) {}
-    MapFeature(MapLocation& rMapLocation, const int maxHP, const bool destructible, const bool blockingLOS, const bool walkable) : GameObject(rMapLocation, maxHP, maxHP), IsDestructible(destructible), IsWalkable(walkable), IsBlockingLOS(blockingLOS) {}
-    MapFeature(MapLocation& rMapLocation, const int maxHP, const int currentHP, const bool destructible, const bool blockingLOS, const bool walkable) : GameObject(rMapLocation, maxHP, currentHP), IsDestructible(destructible), IsWalkable(walkable), IsBlockingLOS(blockingLOS) {}
+    MapFeature(MapLocation& rMapLocation, const bool destructible, const bool blockingLOS, const bool walkable) : GameObject(&rMapLocation, HunterKillerConstants::MAPFEATURE_DEFAULT_HP), IsDestructible(destructible), IsWalkable(walkable), IsBlockingLOS(blockingLOS) {}
+    MapFeature(MapLocation& rMapLocation, const int maxHP, const bool destructible, const bool blockingLOS, const bool walkable) : GameObject(&rMapLocation, maxHP, maxHP), IsDestructible(destructible), IsWalkable(walkable), IsBlockingLOS(blockingLOS) {}
+    MapFeature(MapLocation& rMapLocation, const int maxHP, const int currentHP, const bool destructible, const bool blockingLOS, const bool walkable) : GameObject(&rMapLocation, maxHP, currentHP), IsDestructible(destructible), IsWalkable(walkable), IsBlockingLOS(blockingLOS) {}
     ~MapFeature() override = default;
     bool operator==(MapFeature& rMapFeature) { return GetHashCode() == rMapFeature.GetHashCode(); }
     bool operator!=(MapFeature& rMapFeature) { return !(*this == rMapFeature); }

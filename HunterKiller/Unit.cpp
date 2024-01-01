@@ -2,7 +2,7 @@
 #include "Unit.h"
 
 Unit::Unit(const int SpawningPlayerID, const UnitType unitType, MapLocation& rLocation, const int MaxHP, const int CurrentHP, const Direction Facing, const int FoVRange, const int FoVAngle, const int attackRange, const int attackDamage, const int Cooldown, const int Cost, const int Score)
-    : GameObject(rLocation, MaxHP, CurrentHP), ControllingPlayerID(SpawningPlayerID), TypeOfUnit(unitType)
+    : GameObject(&rLocation, MaxHP, CurrentHP), ControllingPlayerID(SpawningPlayerID), TypeOfUnit(unitType)
 {
     Orientation = Facing;
     FieldOfViewRange = FoVRange;

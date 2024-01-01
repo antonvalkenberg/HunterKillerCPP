@@ -1,7 +1,10 @@
 #include "Soldier.h"
 
 Soldier::Soldier(const Soldier& rSoldier)
-    : Soldier(rSoldier.GetControllingPlayerID(), rSoldier.GetLocation(), rSoldier.GetMaxHP(), rSoldier.GetCurrentHP(), rSoldier.GetOrientation(), rSoldier.GetFieldOfViewRange(), rSoldier.GetFieldOfViewAngle(), rSoldier.GetAttackRange(), rSoldier.GetAttackDamage(), rSoldier.GetSpecialAttackCooldown(), rSoldier.GetSpawnCost(), rSoldier.GetScoreWorth())
+    : Soldier(rSoldier.GetControllingPlayerID(), rSoldier.GetLocation(), rSoldier.GetMaxHP(), rSoldier.GetCurrentHP(), rSoldier.GetOrientation(),
+        rSoldier.GetFieldOfViewRange(), rSoldier.GetFieldOfViewAngle(),
+        rSoldier.GetAttackRange(), rSoldier.GetAttackDamage(), rSoldier.GetSpecialAttackCooldown(),
+        rSoldier.GetSpawnCost(), rSoldier.GetScoreWorth())
 {
     SetID(rSoldier.GetID());
     UpdateFieldOfView(new std::unordered_set(*rSoldier.GetFieldOfView()));

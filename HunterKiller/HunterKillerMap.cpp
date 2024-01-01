@@ -134,7 +134,7 @@ bool HunterKillerMap::IsTraversable(const MapLocation& rLocation, std::string* p
 	return true;
 }
 
-bool HunterKillerMap::IsMovePossible(const MapLocation& rFromLocation, const UnitOrder& rMove, std::string* pFailureReasons) const
+bool HunterKillerMap::IsMovePossible(const MapLocation& rFromLocation, TargetedUnitOrder& rMove, std::string* pFailureReasons) const
 {
 	// Check if the Unit layer at the location points to something
 	if (!MapContent->at(ToPosition(rFromLocation)).at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX)) {
@@ -150,16 +150,10 @@ bool HunterKillerMap::IsMovePossible(const MapLocation& rFromLocation, const Uni
 		return false;
 	}
 
-	if (!rMove.GetTargetLocation().has_value()) {
-		if (pFailureReasons)
-			*pFailureReasons += "Move not possible, no target location set.\n";
-		return false;
-	}
-
 	// Check that the move's target location is a location next to the location that the Unit is in
-    const MapLocation targetLocation = rMove.GetTargetLocation().value();
+    const MapLocation& rTargetLocation = rMove.GetTargetLocation();
 	for (const Direction direction : EnumExtensions::GetDirections()) {
-        if (const MapLocation* adjacentLocation = GetAdjacentLocationInDirection(rFromLocation, direction); adjacentLocation && adjacentLocation->Equals(targetLocation))
+        if (const MapLocation* adjacentLocation = GetAdjacentLocationInDirection(rFromLocation, direction); adjacentLocation && adjacentLocation->Equals(rTargetLocation))
 			return IsTraversable(*adjacentLocation, pFailureReasons);
 	}
 
@@ -262,7 +256,7 @@ void HunterKillerMap::GetNeighbours(const MapLocation& rLocation, std::unordered
 	}
 }
 
-void HunterKillerMap::GetAreaAround(MapLocation& rLocation, const bool includeCentre, std::unordered_set<MapLocation, MapLocationHash>& rAreaCollection) const
+void HunterKillerMap::GetAreaAround(const MapLocation& rLocation, const bool includeCentre, std::unordered_set<MapLocation, MapLocationHash>& rAreaCollection) const
 {
 	GetNeighbours(rLocation, rAreaCollection);
 
@@ -373,29 +367,17 @@ MapFeature* HunterKillerMap::GetFeatureAtLocation(const MapLocation& rLocation) 
 	return nullptr;
 }
 
-bool HunterKillerMap::IsAttackOrderWithoutTarget(const UnitOrder& rOrder) const
+bool HunterKillerMap::IsAttackOrderTargetingAllyStructure(TargetedUnitOrder& rOrder, const Unit* pUnit) const
 {
-	if (!rOrder.IsAttackOrder() || !rOrder.GetTargetLocation().has_value())
-		return false;
-
-	return !GetUnitAtLocation(rOrder.GetTargetLocation().value()) && !dynamic_cast<Structure*>(GetFeatureAtLocation(rOrder.GetTargetLocation().value()));
-}
-
-bool HunterKillerMap::IsAttackOrderTargetingAllyStructure(const UnitOrder& rOrder, const Unit* pUnit) const
-{
-	if (!rOrder.IsAttackOrder() || !rOrder.GetTargetLocation().has_value())
-		return false;
-	auto* pFeature = GetFeatureAtLocation(rOrder.GetTargetLocation().value());
+	auto* pFeature = GetFeatureAtLocation(rOrder.GetTargetLocation());
 	if (!pFeature) return false;
     const auto* pStructure = dynamic_cast<Structure*>(pFeature);
 	return pStructure && pStructure->GetControllingPlayerID() == pUnit->GetControllingPlayerID();
 }
 
-bool HunterKillerMap::IsAttackOrderTargetingAllyUnit(const UnitOrder& rOrder, const Unit* pUnit) const
+bool HunterKillerMap::IsAttackOrderTargetingAllyUnit(TargetedUnitOrder& rOrder, const Unit* pUnit) const
 {
-	if (!rOrder.IsAttackOrder() || !rOrder.GetTargetLocation().has_value())
-		return false;
-    const auto* pTargetUnit = GetUnitAtLocation(rOrder.GetTargetLocation().value());
+	const auto* pTargetUnit = GetUnitAtLocation(rOrder.GetTargetLocation());
 	return pTargetUnit && pTargetUnit->GetControllingPlayerID() == pUnit->GetControllingPlayerID();
 }
 
@@ -466,7 +448,7 @@ bool HunterKillerMap::Place(const int position, GameObject* pObject) const
 	if (MapContent->at(position)[layer])
 		return false;
 
-	pObject->SetLocation(ToLocation(position));
+	pObject->SetLocation(&ToLocation(position));
 	MapContent->at(position)[layer] = pObject;
 	return true;
 }

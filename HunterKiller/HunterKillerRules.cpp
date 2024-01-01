@@ -152,7 +152,6 @@ void HunterKillerRules::ExecuteOrder(const HunterKillerState& rState, HunterKill
     else if (const UnitOrder* pUnitOrder = dynamic_cast<UnitOrder*>(&rOrder); pUnitOrder) {
         const UnitOrderType type = pUnitOrder->GetOrderType();
         auto* pUnit = dynamic_cast<Unit*>(pOrderObject);
-        std::optional<MapLocation> targetLocation = pUnitOrder->GetTargetLocation();
 
         switch (type)
         {
@@ -166,109 +165,120 @@ void HunterKillerRules::ExecuteOrder(const HunterKillerState& rState, HunterKill
             pUnit->InvalidateFieldOfView();
             ++rStats.RotateCounter;
             break;
-        case MOVE:
-            rMap.Move(targetLocation.value(), *pUnit, pFailureReasons);
-            pUnit->InvalidateFieldOfView();
-            ++rStats.Move;
-            break;
-        case ATTACK:
+        }
+
+        if (TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(&rOrder); pTargetedUnitOrder) {
+            MapLocation& rTargetLocation = pTargetedUnitOrder->GetTargetLocation();
+
+            switch (type)
             {
-            const bool attackSuccess = rMap.AttackLocation(targetLocation.value(), pUnit->GetAttackDamage());
-            ++rStats.Attack;
-
-            // Check if we need to trigger an Infected's special attack.
-            // Several conditions need to hold: (in order of most likely to break out of the statement)
-            // - An Infected was the source of the attack
-            // - There is a unit on the targeted location
-            // - The target is not an Infected
-            // - The target is now dead
-            // - The Infected's special attack is not on cooldown
-            // - The attack succeeded
-            Unit* pTargetUnit = rMap.GetUnitAtLocation(targetLocation.value());
-            const Infected* pSourceInfected = dynamic_cast<Infected*>(pUnit);
-            const Infected* pTargetInfected = dynamic_cast<Infected*>(pTargetUnit);
-            bool shouldReleaseTargetUnitMemory = false;
-            if (pSourceInfected && pTargetUnit && !pTargetInfected && pTargetUnit->GetCurrentHP() <= 0 && pUnit->GetSpecialAttackCooldown() == 0 && attackSuccess) {
-
-                rState.GetPlayer(pTargetUnit->GetControllingPlayerID())->RemoveUnit(pTargetUnit->GetID());
-                rMap.UnregisterGameObject(pTargetUnit);
-                AwardPointsForUnitDeath(rActivePlayer, *pTargetUnit);
-                shouldReleaseTargetUnitMemory = true;
-
-                // Spawn a new Infected, on the same team as the Infected that performed this attack
-                auto* pSpawn = new Infected(rActivePlayer.GetID(), targetLocation.value(), pUnit->GetOrientation());
-                rMap.RegisterGameObject(pSpawn);
-                rMap.Place(targetLocation.value(), pSpawn);
-
-                rActivePlayer.AddUnit(pSpawn->GetID());
-                pSpawn->UpdateFieldOfView(rMap.GetFieldOfView(*pSpawn));
-
-                pUnit->StartCooldown();
-            }
-            // Otherwise, check if there was a Unit on the targeted location, and if it is currently dead
-            else if (pTargetUnit && pTargetUnit->GetCurrentHP() <= 0) {
-                // Award points to the player
-                AwardPointsForUnitDeath(rActivePlayer, *pTargetUnit);
-                // NOTE: we don't have to release the unit's memory here, because we didn't have to do an Unregister->Register loop like above
-                // It'll get cleaned up in the Map's cleanup
-            }
-
-            if (pTargetUnit) {
-                ++rStats.AttackUnit;
-                if (pTargetUnit->IsControlledBy(rActivePlayer.GetID()))
-                    ++rStats.AttackAlly;
-            }
-            if (const Structure* pStructure = dynamic_cast<Structure*>(rMap.GetFeatureAtLocation(targetLocation.value())); pStructure)
-                ++rStats.AttackStructure;
-
-            if (shouldReleaseTargetUnitMemory)
-            {
-                delete pTargetUnit;
-                pTargetUnit = nullptr;
-            }
-            }
-            break;
-        case ATTACK_SPECIAL:
-            switch (pUnit->GetType())
-            {
-            case UNIT_INFECTED:
+            case MOVE:
+                rMap.Move(rTargetLocation, *pUnit, pFailureReasons);
+                pUnit->InvalidateFieldOfView();
+                ++rStats.Move;
                 break;
-            case UNIT_MEDIC:
-                rMap.GetUnitAtLocation(targetLocation.value())->IncreaseHP(HunterKillerConstants::MEDIC_SPECIAL_HEAL);
-                pUnit->StartCooldown();
-                ++rStats.Heal;
-                break;
-            case UNIT_SOLDIER:
+            case ATTACK:
                 {
-                // The special attack of a soldier is a grenade that does damage in an area
-                auto* areaOfEffect = new std::unordered_set<MapLocation, MapLocationHash>();
-                rMap.GetAreaAround(targetLocation.value(), true, *areaOfEffect);
-                for (MapLocation location : *areaOfEffect) {
-                    // Call an attack on each location inside the area of effect
-                    if (rMap.AttackLocation(location, HunterKillerConstants::SOLDIER_SPECIAL_DAMAGE)) {
-                        // Check if there was a Unit on the targeted location, and if it is currently dead
-                        if (Unit* pAoEUnit = rMap.GetUnitAtLocation(location); pAoEUnit && pAoEUnit->GetCurrentHP() <= 0) {
-                            // Award points to the player
-                            AwardPointsForUnitDeath(rActivePlayer, *pAoEUnit);
+                const bool attackSuccess = rMap.AttackLocation(rTargetLocation, pUnit->GetAttackDamage());
+                ++rStats.Attack;
+
+                // Check if we need to trigger an Infected's special attack.
+                // Several conditions need to hold: (in order of most likely to break out of the statement)
+                // - An Infected was the source of the attack
+                // - There is a unit on the targeted location
+                // - The target is not an Infected
+                // - The target is now dead
+                // - The Infected's special attack is not on cooldown
+                // - The attack succeeded
+                Unit* pTargetUnit = rMap.GetUnitAtLocation(rTargetLocation);
+                const Infected* pSourceInfected = dynamic_cast<Infected*>(pUnit);
+                const Infected* pTargetInfected = dynamic_cast<Infected*>(pTargetUnit);
+                bool shouldReleaseTargetUnitMemory = false;
+                if (pSourceInfected && pTargetUnit && !pTargetInfected && pTargetUnit->GetCurrentHP() <= 0 && pUnit->GetSpecialAttackCooldown() == 0 && attackSuccess) {
+
+                    rState.GetPlayer(pTargetUnit->GetControllingPlayerID())->RemoveUnit(pTargetUnit->GetID());
+                    rMap.UnregisterGameObject(pTargetUnit);
+                    AwardPointsForUnitDeath(rActivePlayer, *pTargetUnit);
+                    shouldReleaseTargetUnitMemory = true;
+
+                    // Spawn a new Infected, on the same team as the Infected that performed this attack
+                    auto* pSpawn = new Infected(rActivePlayer.GetID(), rTargetLocation, pUnit->GetOrientation());
+                    rMap.RegisterGameObject(pSpawn);
+                    rMap.Place(rTargetLocation, pSpawn);
+
+                    rActivePlayer.AddUnit(pSpawn->GetID());
+                    pSpawn->UpdateFieldOfView(rMap.GetFieldOfView(*pSpawn));
+
+                    pUnit->StartCooldown();
+                }
+                // Otherwise, check if there was a Unit on the targeted location, and if it is currently dead
+                else if (pTargetUnit && pTargetUnit->GetCurrentHP() <= 0) {
+                    // Award points to the player
+                    AwardPointsForUnitDeath(rActivePlayer, *pTargetUnit);
+                    // NOTE: we don't have to release the unit's memory here, because we didn't have to do an Unregister->Register loop like above
+                    // It'll get cleaned up in the Map's cleanup
+                }
+
+                if (pTargetUnit) {
+                    ++rStats.AttackUnit;
+                    if (pTargetUnit->IsControlledBy(rActivePlayer.GetID()))
+                        ++rStats.AttackAlly;
+                }
+                if (const Structure* pStructure = dynamic_cast<Structure*>(rMap.GetFeatureAtLocation(rTargetLocation)); pStructure)
+                    ++rStats.AttackStructure;
+
+                if (shouldReleaseTargetUnitMemory)
+                {
+                    delete pTargetUnit;
+                    pTargetUnit = nullptr;
+                }
+                }
+                break;
+            case ATTACK_SPECIAL:
+                switch (pUnit->GetType())
+                {
+                case UNIT_INFECTED:
+                    break;
+                case UNIT_MEDIC:
+                    rMap.GetUnitAtLocation(rTargetLocation)->IncreaseHP(HunterKillerConstants::MEDIC_SPECIAL_HEAL);
+                    pUnit->StartCooldown();
+                    ++rStats.Heal;
+                    break;
+                case UNIT_SOLDIER:
+                    {
+                    // The special attack of a soldier is a grenade that does damage in an area
+                    auto* areaOfEffect = new std::unordered_set<MapLocation, MapLocationHash>();
+                    rMap.GetAreaAround(rTargetLocation, true, *areaOfEffect);
+                    for (MapLocation location : *areaOfEffect) {
+                        // Call an attack on each location inside the area of effect
+                        if (rMap.AttackLocation(location, HunterKillerConstants::SOLDIER_SPECIAL_DAMAGE)) {
+                            // Check if there was a Unit on the targeted location, and if it is currently dead
+                            if (Unit* pAoEUnit = rMap.GetUnitAtLocation(location); pAoEUnit && pAoEUnit->GetCurrentHP() <= 0) {
+                                // Award points to the player
+                                AwardPointsForUnitDeath(rActivePlayer, *pAoEUnit);
+                            }
                         }
                     }
+                    pUnit->StartCooldown();
+                    ++rStats.Grenade;
+                    delete areaOfEffect;
+                    areaOfEffect = nullptr;
+                    }
+                    break;
+                default:
+                    // Getting here means we have come across a type that is not yet implemented
+                    if (pFailureReasons)
+                        *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unrecognized unit type.\n", pUnitOrder->GetObjectID());
                 }
-                pUnit->StartCooldown();
-                ++rStats.Grenade;
-                delete areaOfEffect;
-                areaOfEffect = nullptr;
-                }
+                break;
+            case ROTATE_CLOCKWISE:
+            case ROTATE_COUNTER_CLOCKWISE:
                 break;
             default:
                 // Getting here means we have come across a type that is not yet implemented
                 if (pFailureReasons)
-                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unrecognized unit type.\n", pUnitOrder->GetObjectID());
+                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unrecognized order type {1:d}.\n", pUnitOrder->GetObjectID(), static_cast<int>(type));
             }
-            break;
-        default:
-            // Getting here means we have come across a type that is not yet implemented
-            if (pFailureReasons)
-                *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unrecognized order type {1:d}.\n", pUnitOrder->GetObjectID(), static_cast<int>(type));
         }
     }
     else {
@@ -364,32 +374,31 @@ bool HunterKillerRules::IsOrderPossible(const HunterKillerState& rState, HunterK
         // Rotations don't need any other checks
         if (type == ROTATE_CLOCKWISE || type == ROTATE_COUNTER_CLOCKWISE)
             return true;
+    }
 
+    if (TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(&rOrder); pTargetedUnitOrder)
+    {
         // Make sure a target location has been set
-        const std::optional<MapLocation> targetLocation = pUnitOrder->GetTargetLocation();
-        if (!targetLocation.has_value())
-        {
-            if (pFailureReasons)
-                *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: No target location set.\n", pUnitOrder->GetObjectID());
-            return false;
-        }
+        const MapLocation& rTargetLocation = pTargetedUnitOrder->GetTargetLocation();
+        const Unit* pUnit = dynamic_cast<Unit*>(pOrderObject);
+        const UnitOrderType type = pTargetedUnitOrder->GetOrderType();
 
         if (type == MOVE)
-            return rMap.IsMovePossible(pOrderObject->GetLocation(), *pUnitOrder, pFailureReasons);
+            return rMap.IsMovePossible(pOrderObject->GetLocation(), *pTargetedUnitOrder, pFailureReasons);
 
         // Make sure the target location is in the Unit's field of view
-        if (!pUnit->IsInFieldOfView(targetLocation.value()))
+        if (!pUnit->IsInFieldOfView(rTargetLocation))
         {
             if (pFailureReasons)
-                *pFailureReasons += std::format("UnitOrder ({0:d} -> Attack {1:s}) fail: Target location is not in unit's Field-of-View.\n", pUnitOrder->GetObjectID(), targetLocation.value().ToString());
+                *pFailureReasons += std::format("UnitOrder ({0:d} -> Attack {1:s}) fail: Target location is not in unit's Field-of-View.\n", pTargetedUnitOrder->GetObjectID(), rTargetLocation.ToString());
             return false;
         }
 
         // Check if the target location is within the Unit's attack range
-        if (pUnit->GetAttackRange() < MapLocation::GetManhattanDistance(pUnit->GetLocation(), targetLocation.value()))
+        if (pUnit->GetAttackRange() < MapLocation::GetManhattanDistance(pUnit->GetLocation(), rTargetLocation))
         {
             if (pFailureReasons)
-                *pFailureReasons += std::format("UnitOrder ({0:d} -> Attack {1:s}) fail: Target location is outside of attack range.\n", pUnitOrder->GetObjectID(), targetLocation.value().ToString());
+                *pFailureReasons += std::format("UnitOrder ({0:d} -> Attack {1:s}) fail: Target location is outside of attack range.\n", pTargetedUnitOrder->GetObjectID(), rTargetLocation.ToString());
             return false;
         }
 
@@ -402,7 +411,7 @@ bool HunterKillerRules::IsOrderPossible(const HunterKillerState& rState, HunterK
             if (pUnit->GetSpecialAttackCooldown() > 0)
             {
                 if (pFailureReasons)
-                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Special attack is still on cooldown ({1:d} round(s) remaining).\n", pUnitOrder->GetObjectID(), pUnit->GetSpecialAttackCooldown());
+                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Special attack is still on cooldown ({1:d} round(s) remaining).\n", pTargetedUnitOrder->GetObjectID(), pUnit->GetSpecialAttackCooldown());
                 return false;
             }
 
@@ -410,36 +419,36 @@ bool HunterKillerRules::IsOrderPossible(const HunterKillerState& rState, HunterK
             {
             case UNIT_SOLDIER:
                 // The special of a Soldier can't have a Wall as it's target
-                if (const Wall* pWall = dynamic_cast<Wall*>(rMap.GetFeatureAtLocation(targetLocation.value())); pWall)
+                if (const Wall* pWall = dynamic_cast<Wall*>(rMap.GetFeatureAtLocation(rTargetLocation)); pWall)
                 {
                     if (pFailureReasons)
-                        *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: A Soldier's special attack cannot target a Wall.\n", pUnitOrder->GetObjectID());
+                        *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: A Soldier's special attack cannot target a Wall.\n", pTargetedUnitOrder->GetObjectID());
                     return false;
                 }
                 return true;
             case UNIT_MEDIC:
                 // Fail if the target location of a Medic's special doesn't contain a Unit
-                if (!rMap.GetUnitAtLocation(targetLocation.value()))
+                if (!rMap.GetUnitAtLocation(rTargetLocation))
                 {
                     if (pFailureReasons)
-                        *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Target location does not contain a Unit to heal.\n", pUnitOrder->GetObjectID());
+                        *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Target location does not contain a Unit to heal.\n", pTargetedUnitOrder->GetObjectID());
                     return false;
                 }
                 return true;
             case UNIT_INFECTED:
                 // The special attack of an infected can't be ordered, since it triggers on kill
                 if (pFailureReasons)
-                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: An Infected's special attack cannot be ordered.\n", pUnitOrder->GetObjectID());
+                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: An Infected's special attack cannot be ordered.\n", pTargetedUnitOrder->GetObjectID());
                 return false;
             default:
                 if (pFailureReasons)
-                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unrecognized UnitType.\n", pUnitOrder->GetObjectID());
+                    *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unrecognized UnitType.\n", pTargetedUnitOrder->GetObjectID());
                 return false;
             }
         }
 
         if (pFailureReasons)
-            *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unsupported order type {1:d}.\n", pUnitOrder->GetObjectID(), static_cast<int>(type));
+            *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Unsupported order type {1:d}.\n", pTargetedUnitOrder->GetObjectID(), static_cast<int>(type));
         return false;
     }
 

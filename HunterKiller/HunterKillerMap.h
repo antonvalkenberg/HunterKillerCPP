@@ -12,6 +12,7 @@
 #include "Structure.h"
 #include "Unit.h"
 #include "UnitOrder.h"
+#include "TargetedUnitOrder.h"
 #include "packages/Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.6/build/native/include/gtest/gtest_prod.h"
 
 class HunterKillerMap
@@ -37,7 +38,7 @@ public:
     bool IsOnMap(const MapLocation& rLocation) const { return IsXOnMap(rLocation.GetX()) && IsYOnMap(rLocation.GetY()); }
     bool IsTraversable(const MapLocation& rLocation, std::string* pFailureReasons) const;
     bool IsTraversable(const MapLocation& rLocation) const { return IsTraversable(rLocation, nullptr); }
-    bool IsMovePossible(const MapLocation& rFromLocation, const UnitOrder& rMove, std::string* pFailureReasons) const;
+    bool IsMovePossible(const MapLocation& rFromLocation, TargetedUnitOrder& rMove, std::string* pFailureReasons) const;
     bool IsMovePossible(const MapLocation& rFromLocation, Direction direction) const;
     bool Move(const MapLocation& rTargetLocation, GameObject& rGameObject, std::string* pFailureReasons);
     [[nodiscard]] MapLocation* GetLocationInDirection(const MapLocation& rFromLocation, Direction direction, int distance) const;
@@ -45,7 +46,7 @@ public:
     int GetPositionInDirection(int position, Direction direction, int distance) const;
     int GetMaxTravelDistance(const MapLocation& rLocation, Direction direction) const;
     void GetNeighbours(const MapLocation& rLocation, std::unordered_set<MapLocation, MapLocationHash>& rNeighbourCollection) const;
-    void GetAreaAround(MapLocation& rLocation, bool includeCentre, std::unordered_set<MapLocation, MapLocationHash>& rAreaCollection) const;
+    void GetAreaAround(const MapLocation& rLocation, bool includeCentre, std::unordered_set<MapLocation, MapLocationHash>& rAreaCollection) const;
     void GetMapFeaturesAround(const MapLocation& rLocation, std::vector<std::vector<MapFeature*>>& rAreaCollection) const;
     [[nodiscard]] std::unordered_set<MapLocation, MapLocationHash>* GetFieldOfView(const Unit& rUnit);
     [[nodiscard]] std::unordered_set<MapLocation, MapLocationHash>* GetFieldOfView(const Structure& rStructure) const;
@@ -55,9 +56,8 @@ public:
     [[nodiscard]] Unit* GetUnitAtLocation(const MapLocation& rLocation) const;
     [[nodiscard]] MapFeature* GetFeatureAtLocation(const MapLocation& rLocation) const;
     int GetCurrentCommandCenterCount() const { if (!CommandCenterObjectIDs) return 0; return static_cast<int>(CommandCenterObjectIDs->size()); }
-    bool IsAttackOrderWithoutTarget(const UnitOrder& rOrder) const;
-    bool IsAttackOrderTargetingAllyStructure(const UnitOrder& rOrder, const Unit* pUnit) const;
-    bool IsAttackOrderTargetingAllyUnit(const UnitOrder& rOrder, const Unit* pUnit) const;
+    bool IsAttackOrderTargetingAllyStructure(TargetedUnitOrder& rOrder, const Unit* pUnit) const;
+    bool IsAttackOrderTargetingAllyUnit(TargetedUnitOrder& rOrder, const Unit* pUnit) const;
     void RegisterGameObject(GameObject* pGameObject) const;
     void UnregisterGameObject(GameObject* pGameObject) const;
     void UpdateFieldOfView();

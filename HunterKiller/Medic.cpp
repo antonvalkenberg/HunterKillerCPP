@@ -1,7 +1,10 @@
 #include "Medic.h"
 
 Medic::Medic(const Medic& rMedic)
-    : Medic(rMedic.GetControllingPlayerID(), rMedic.GetLocation(), rMedic.GetMaxHP(), rMedic.GetCurrentHP(), rMedic.GetOrientation(), rMedic.GetFieldOfViewRange(), rMedic.GetFieldOfViewAngle(), rMedic.GetAttackRange(), rMedic.GetAttackDamage(), rMedic.GetSpecialAttackCooldown(), rMedic.GetSpawnCost(), rMedic.GetScoreWorth())
+    : Medic(rMedic.GetControllingPlayerID(), rMedic.GetLocation(), rMedic.GetMaxHP(), rMedic.GetCurrentHP(), rMedic.GetOrientation(),
+        rMedic.GetFieldOfViewRange(), rMedic.GetFieldOfViewAngle(),
+        rMedic.GetAttackRange(), rMedic.GetAttackDamage(), rMedic.GetSpecialAttackCooldown(),
+        rMedic.GetSpawnCost(), rMedic.GetScoreWorth())
 {
     SetID(rMedic.GetID());
     UpdateFieldOfView(new std::unordered_set(*rMedic.GetFieldOfView()));
