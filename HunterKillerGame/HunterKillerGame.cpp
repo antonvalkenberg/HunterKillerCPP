@@ -66,6 +66,8 @@ bool renderFoV = false;
 int* pMouseLeftClick = new int[2];
 int* pMouseRightClick = new int[2];
 int selectedSquare = -1;
+glm::vec2 nextButtonPos = glm::vec2(-1, -1);
+bool nextButtonDown = false;
 
 int main()
 {
@@ -128,7 +130,7 @@ int main()
 	float lastFrame = 0.0f;
 
 	// frame loop
-	bool finishedGame;
+	bool finishedGame = false;
 	do {
 		// calculate delta time
 		float currentFrame = glfwGetTime();
@@ -139,30 +141,34 @@ int main()
         // manage user input
         process_input(pState);
 
-		// update game state
-        HunterKillerState* pStateCopy = pState->Copy();
-		pStateCopy->Prepare(pState->GetActivePlayerID());
+		if (nextButtonDown || pActions->empty()) {
+			nextButtonDown = false;
 
-		HunterKillerAction* pAction = bot->Handle(*pStateCopy);
-		pActions->push_back(pAction);
+			// update game state
+			HunterKillerState* pStateCopy = pState->Copy();
+			pStateCopy->Prepare(pState->GetActivePlayerID());
 
-		Result* pResult = HunterKillerRules::Handle(*pState, *pAction);
+			HunterKillerAction* pAction = bot->Handle(*pStateCopy);
+			pActions->push_back(pAction);
 
-		if (!pResult->Information->empty())
-			pActionResults->push_back(std::string(*pResult->Information));
+			Result* pResult = HunterKillerRules::Handle(*pState, *pAction);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		finishedGame = pResult->FinishedGame;
+			if (!pResult->Information->empty())
+				pActionResults->push_back(std::string(*pResult->Information));
+
+			//std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			finishedGame = pResult->FinishedGame;
+
+			delete pStateCopy; pStateCopy = nullptr;
+			delete pResult; pResult = nullptr;
+		}
 
 		// render
 		glClearColor(0.824f, 0.733f, 0.545f, 0.5f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		Render(pState, pAction);
+		Render(pState, pActions->back());
 
 		glfwSwapBuffers(window);
-
-		delete pStateCopy; pStateCopy = nullptr;
-		delete pResult; pResult = nullptr;
 	} while (!finishedGame && !glfwWindowShouldClose(window));
 	
 	glfwTerminate();
@@ -317,6 +323,10 @@ void InitRendering()
 	ResourceManager::LoadTexture("textures/ui/bars/bar_left_2.png", true, "bar_left_2");
 	ResourceManager::LoadTexture("textures/ui/bars/bar_right_2.png", true, "bar_right_2");
 	ResourceManager::LoadTexture("textures/ui/select.png", true, "selected");
+	ResourceManager::LoadTexture("textures/ui/btns/btn_down.png", true, "button_down");
+	ResourceManager::LoadTexture("textures/ui/btns/btn_up.png", true, "button_up");
+	ResourceManager::LoadTexture("textures/ui/controls/next.png", true, "next_up");
+	ResourceManager::LoadTexture("textures/ui/controls/next_over.png", true, "next_down");
 	#pragma endregion
 
 	// Randomize tiles
@@ -538,13 +548,15 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			std::string playerInfoTextLeft = std::format("{0:d} : {1}", pPlayer->GetScore(), pPlayer->GetName());
 			pUIText->RenderText(playerInfoTextLeft, middle - (playerInfoTextLeft.length() * 14) - SPRITE_SIZE - 5, playerScoreYOffset, 1.0f, COLOR_UI_TEXT);
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pPlayer->GetID() + 1)), glm::vec2(middle - SPRITE_SIZE - 3, playerScoreYOffset - 5), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+			if (pState->GetActivePlayerID() == pPlayer->GetID()) pRenderer->DrawSprite(ResourceManager::GetTexture("selected"), glm::vec2(middle - SPRITE_SIZE - 3, playerScoreYOffset - 5), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 		}
 		else {
 			// IDs 1, 3
 			std::string playerInfoTextRight = std::format("{1} : {0:d}", pPlayer->GetScore(), pPlayer->GetName());
 			pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("base_p{0}_0", pPlayer->GetID() + 1)), glm::vec2(middle + 3, playerScoreYOffset - 5), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
+			if (pState->GetActivePlayerID() == pPlayer->GetID()) pRenderer->DrawSprite(ResourceManager::GetTexture("selected"), glm::vec2(middle + 3, playerScoreYOffset - 5), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_WHITE);
 			pUIText->RenderText(playerInfoTextRight, middle + SPRITE_SIZE + 7, playerScoreYOffset, 1.0f, COLOR_UI_TEXT);
-		}
+		}	
 	}
 
 	// Score bar
@@ -583,6 +595,11 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	int mapEndY = rMap.GetMapHeight() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 	std::string roundText = std::format("Round: {0:d}/200", pState->GetCurrentRound());
 	pUIText->RenderText(roundText, middle - (roundText.length() * 5), mapEndY + 10, 0.7f, COLOR_WHITE);
+
+	// Next button
+	nextButtonPos = glm::vec2(middle, mapEndY + 30);
+	pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("button_{0}", nextButtonDown ? "down" : "up")), nextButtonPos, glm::vec2(SPRITE_SIZE, SPRITE_SIZE));
+	pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("next_{0}", nextButtonDown ? "down" : "up")), glm::vec2(nextButtonPos.x + 2, nextButtonPos.y + 2), glm::vec2(SPRITE_SIZE * 0.8f, SPRITE_SIZE * 0.8f));
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
@@ -669,17 +686,23 @@ void process_input(HunterKillerState* pState) {
 	}
 	// Pressing f key toggles rendering of Field-of-View for players
 	if (Keys[GLFW_KEY_F] && !KeysProcessed[GLFW_KEY_F]) {
-		renderFoV = !renderFoV;
+		//renderFoV = !renderFoV;
 		KeysProcessed[GLFW_KEY_F] = true; 
 	}
 
+	// Process left mouse-click
 	if (pMouseLeftClick[0] > 0 && pMouseLeftClick[1] > 0) {
-		selectedSquare = determineClickedSquareIndex(pState, pMouseLeftClick[0], pMouseLeftClick[1]);
+		bool clickedOnMap = isClickOnPlayableArea(pMouseLeftClick[0], pMouseLeftClick[1]);
+		bool clickedOnNextButton = pMouseLeftClick[0] >= nextButtonPos.x && pMouseLeftClick[0] <= nextButtonPos.x + SPRITE_SIZE && pMouseLeftClick[1] >= nextButtonPos.y && pMouseLeftClick[1] <= nextButtonPos.y + SPRITE_SIZE;
+		if (clickedOnMap) selectedSquare = determineClickedSquareIndex(pState, pMouseLeftClick[0], pMouseLeftClick[1]);
+		if (clickedOnNextButton) nextButtonDown = !nextButtonDown;
 		pMouseLeftClick[0] = NULL;
 		pMouseLeftClick[1] = NULL;
 	}
+	// Process right mouse-click
 	if (pMouseRightClick[0] > 0 && pMouseRightClick[1] > 0) {
-		if (selectedSquare == determineClickedSquareIndex(pState, pMouseRightClick[0], pMouseRightClick[1]))
+		bool clickedOnMap = isClickOnPlayableArea(pMouseRightClick[0], pMouseRightClick[1]);
+		if (clickedOnMap && selectedSquare == determineClickedSquareIndex(pState, pMouseRightClick[0], pMouseRightClick[1]))
 			selectedSquare = -1;
 		pMouseRightClick[0] = NULL;
 		pMouseRightClick[1] = NULL;
@@ -695,13 +718,13 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (pMouseXD && pMouseYD) {
 		int x = std::floor(*pMouseXD);
 		int y = std::floor(*pMouseYD);
-		bool clickedOnMap = isClickOnPlayableArea(x, y);
-
-		if (clickedOnMap && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			pMouseLeftClick[0] = x;
 			pMouseLeftClick[1] = y;
+			
 		}
-		if (clickedOnMap && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			pMouseRightClick[0] = x;
 			pMouseRightClick[1] = y;
 		}
