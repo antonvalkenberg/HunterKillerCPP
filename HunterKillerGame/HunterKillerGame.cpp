@@ -62,6 +62,7 @@ bool Keys[1024];
 bool KeysProcessed[1024];
 bool renderOrderIDs = false;
 bool renderUnitIDs = false;
+bool renderFoV = false;
 int* pMouseLeftClick = new int[2];
 int* pMouseRightClick = new int[2];
 int selectedSquare = -1;
@@ -340,8 +341,13 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 		auto& rMapLocation = rMap.ToLocation(i);
 		int x = rMapLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
 		int y = rMapLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
-		auto* pFieldOfView = pState->GetPlayer(pState->GetActivePlayerID())->GetCombinedFieldOfView(rMap);
-		auto spriteColor = pFieldOfView->contains(rMapLocation) ? COLOR_WHITE : COLOR_SHADOWED;
+		auto spriteColor = COLOR_WHITE;
+
+		if (renderFoV) {
+			auto* pFieldOfView = pState->GetPlayer(pState->GetActivePlayerID())->GetCombinedFieldOfView(rMap);
+			if (!pFieldOfView->contains(rMapLocation)) spriteColor = COLOR_SHADOWED;
+			delete pFieldOfView; pFieldOfView = nullptr;
+		}
 
 		switch (pMapFeature->GetType()) {
 		case FLOOR: {
@@ -456,8 +462,6 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			if (renderUnitIDs)
 				pNumbersText->RenderText(std::format("{0:d}", pUnit->GetID()), x, y, 0.4f, COLOR_GREEN);
 		}
-
-		delete pFieldOfView; pFieldOfView = nullptr;
 	}
 
 	if (pAction) {
@@ -662,6 +666,11 @@ void process_input(HunterKillerState* pState) {
 	if (Keys[GLFW_KEY_X] && !KeysProcessed[GLFW_KEY_X]) {
 		renderUnitIDs = !renderUnitIDs;
 		KeysProcessed[GLFW_KEY_X] = true; 
+	}
+	// Pressing f key toggles rendering of Field-of-View for players
+	if (Keys[GLFW_KEY_F] && !KeysProcessed[GLFW_KEY_F]) {
+		renderFoV = !renderFoV;
+		KeysProcessed[GLFW_KEY_F] = true; 
 	}
 
 	if (pMouseLeftClick[0] > 0 && pMouseLeftClick[1] > 0) {
