@@ -16,6 +16,7 @@ public:
     ~Structure() override;
     Structure* Copy() override;
     std::string ToString() override;
+    std::string ToStringInformational() override;
     StructureType GetStructureType() const { return TypeOfStructure; }
     TileType GetType() override { return BASE; }
     bool IsControlledBy(const int playerID) const override { return ControllingPlayerID == playerID; }

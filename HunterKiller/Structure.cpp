@@ -74,3 +74,24 @@ std::string Structure::ToString() {
 		return "?";
 	}
 }
+
+std::string Structure::ToStringInformational() {
+	std::string spawnText = std::format("{0}", GetAllowsSpawning() ? ", Can spawn Units" : "");
+	std::string hpText = std::format("{0}", GetIsDestructible() ? std::format(", {0} HP", GetCurrentHP()) : "Indestructible");
+	std::string resourceText = std::format("{0}", GeneratesResource ? std::format(", Generates {0} resource per {1} rounds", GetResourceGeneration(), HunterKillerConstants::RULES_STRUCTURE_GENERATION_FREQUENCY) : "");
+	std::string scoreText = std::format("{0}", GeneratesScore ? std::format(", Generates {0} score per {1} rounds", GetScoreGeneration(), HunterKillerConstants::RULES_STRUCTURE_GENERATION_FREQUENCY) : "");
+
+	switch (TypeOfStructure)
+	{
+	case STRUCTURE_BASE:
+		return std::format("Base{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
+	case STRUCTURE_OBJECTIVE:
+		return std::format("Objective{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
+	case STRUCTURE_OUTPOST:
+		return std::format("Outpost{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
+	case STRUCTURE_STRONGHOLD:
+		return std::format("Stonghold{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
+	default:
+		return "?";
+	}
+}

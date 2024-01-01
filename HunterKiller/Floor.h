@@ -12,6 +12,7 @@ public:
     ~Floor() override = default;
     Floor* Copy() override { return new Floor(*this); }
     std::string ToString() override { return std::format("{}", static_cast<char>(FLOOR)); }
+    std::string ToStringInformational() override { return "Just a floor"; }
     TileType GetType() override { return TileType::FLOOR; }
 };
 

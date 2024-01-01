@@ -13,6 +13,7 @@ public:
     ~Door() override = default;
     Door* Copy() override;
     std::string ToString() override { return IsOpen() ? std::format("{}", static_cast<char>(DOOR_OPEN)) : std::format("{}", static_cast<char>(DOOR_CLOSED)); }
+    std::string ToStringInformational() override { return std::format("Door, Indestructible, {0}", IsOpen() ? std::format("Open; closes in {0} rounds", GetOpenTimer()) : "Closed"); }
     TileType GetType() override { return IsOpen() ? TileType::DOOR_OPEN : TileType::DOOR_CLOSED; }
     int GetOpenTimer() const { return OpenTimer; }
     bool IsOpen() const { return !IsBlockingLOS; }

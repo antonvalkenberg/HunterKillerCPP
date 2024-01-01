@@ -600,6 +600,23 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	nextButtonPos = glm::vec2(middle, mapEndY + 30);
 	pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("button_{0}", nextButtonDown ? "down" : "up")), nextButtonPos, glm::vec2(SPRITE_SIZE, SPRITE_SIZE));
 	pRenderer->DrawSprite(ResourceManager::GetTexture(std::format("next_{0}", nextButtonDown ? "down" : "up")), glm::vec2(nextButtonPos.x + 2, nextButtonPos.y + 2), glm::vec2(SPRITE_SIZE * 0.8f, SPRITE_SIZE * 0.8f));
+
+	// Selected square details
+	if (selectedSquare >= 0) {
+		auto& rMapLocation = rMap.ToLocation(selectedSquare);
+		std::string locationText = std::format("Selected square: {0}", rMapLocation.ToString());
+		pUIText->RenderText(locationText, middle - (locationText.length() * 4), mapEndY + 60, 0.7f, COLOR_WHITE);
+
+		auto* pMapFeature = dynamic_cast<MapFeature*>(rMapContent[selectedSquare].at(HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX));
+		std::string mapFeatureText = std::format("Terrain: {0}", pMapFeature->ToStringInformational());
+		pUIText->RenderText(mapFeatureText, middle - (mapFeatureText.length() * 4), mapEndY + 75, 0.7f, COLOR_WHITE);
+
+		auto* pUnit = dynamic_cast<Unit*>(rMapContent[selectedSquare].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
+		if (pUnit) {
+			std::string unitText = std::format("Unit: {0}", pUnit->ToStringInformational());
+			pUIText->RenderText(unitText, middle - (unitText.length() * 4), mapEndY + 90, 0.7f, COLOR_WHITE);
+		}
+	}
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */

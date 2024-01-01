@@ -12,6 +12,7 @@ public:
     ~Space() override = default;
     Space* Copy() override { return new Space(*this); }
     std::string ToString() override { return std::format("{}", static_cast<char>(SPACE)); }
+    std::string ToStringInformational() override { return ToString(); }
     TileType GetType() override { return TileType::SPACE; }
 };
 

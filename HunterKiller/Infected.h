@@ -14,5 +14,6 @@ public:
     int GetHashCode() override { return 47 ^ GetID() ^ GetControllingPlayerID() ^ UNIT_INFECTED ^ GetLocation().GetHashCode() ^ GetOrientation(); }
     void StartCooldown() override { SetSpecialAttackCooldown(HunterKillerConstants::INFECTED_COOLDOWN); }
     std::string ToString() override { return std::format("{}", static_cast<char>(INFECTED)); }
+    std::string ToStringInformational() override { return std::format("Infected, {0} HP, {1}", GetCurrentHP(), CanUseSpecialAttack() ? "Infect ready" : std::format("Infect available in {0} round(s)", GetSpecialAttackCooldown())); }
 };
 

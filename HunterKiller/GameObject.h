@@ -12,6 +12,7 @@ public:
     virtual ~GameObject() { Location = nullptr; }; // MapLocation memory is owned by HunterKillerMap
     virtual GameObject* Copy() = 0;
     virtual std::string ToString() = 0;
+    virtual std::string ToStringInformational() = 0;
     virtual int GetHashCode() = 0;
     void ReduceHP(const int amount) { HpCurrent = std::max(HpCurrent - amount, 0); }
     void IncreaseHP(const int amount) { HpCurrent = std::min(HpCurrent + amount, HpMax); }
