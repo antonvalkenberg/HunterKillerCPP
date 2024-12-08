@@ -1,0 +1,29 @@
+My notes:
+
+	Includes directory for project
+	OpenGL
+		- link opengl32.lib
+	GLAD
+		(library wrapping OpenGL functions)
+		(#include <glad/glad.h>)
+		- add glad.c to project
+		- include folders (glad + KHR)
+	GLFW
+		(library interacting with OpenGL)
+		(#include <GLFW/glfw3.h>)
+		- link glfw3.lib
+		- includes folder
+	stb_image
+		(image loading library)
+		- add stb_image.h to project
+		- create a cpp file with
+			#define STB_IMAGE_IMPLEMENTATION
+			#include "stb_image.h"
+	GLM
+		(math library for OpenGL)
+		- add header files to Includes folder
+	(Assimp)
+		(model importing library)
+
+Reference:
+	https://learnopengl.com/In-Practice/Text-Rendering (link last checked: 08-12-2024)
