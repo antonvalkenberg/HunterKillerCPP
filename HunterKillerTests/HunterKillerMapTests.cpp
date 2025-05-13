@@ -26,7 +26,7 @@ protected:
     HunterKillerMap* TestMap = nullptr;
 };
 
-class MapPathfindingTest : public ::testing::Test
+class MapPathfindingTest : public testing::Test
 {
 protected:
     void SetUp() override

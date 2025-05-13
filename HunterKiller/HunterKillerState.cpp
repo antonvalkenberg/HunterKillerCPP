@@ -71,7 +71,7 @@ std::unordered_map<int, int>* HunterKillerState::GetScores() const
 bool HunterKillerState::IsDone() const
 {
     // A game is completed once only 1 command center remains, or if we have reached the maximum allowed number of rounds and the last player has made their move
-    return Map->GetCurrentCommandCenterCount() == 1 || (CurrentRound >= HunterKillerConstants::RULES_MAX_GAME_ROUNDS && ActivePlayerID == Players->back()->GetID());
+    return Map->GetCurrentCommandCenterCount() == 1 || CurrentRound >= HunterKillerConstants::RULES_MAX_GAME_ROUNDS && ActivePlayerID == Players->back()->GetID();
 }
 
 void HunterKillerState::EndPlayerTurn()
@@ -86,7 +86,7 @@ void HunterKillerState::EndPlayerTurn()
 
         if (CurrentRound % HunterKillerConstants::RULES_STRUCTURE_GENERATION_FREQUENCY == 0)
         {
-            for (const std::unordered_map<int, GameObject*>* objects = Map->GetObjects(); std::pair<int, GameObject*> pGameObjectPair : *objects)
+            for (const std::unordered_map<int, GameObject*>* objects = Map->GetObjects(); const std::pair<int, GameObject*> pGameObjectPair : *objects)
             {
                 const Structure* pStructure = dynamic_cast<Structure*>(pGameObjectPair.second);
                 if (pStructure && pStructure->GetGeneratesResource())
@@ -227,15 +227,16 @@ void HunterKillerState::AwardScoreToController(const Structure& rStructure) cons
         pPlayer->AwardScore(rStructure.GetScoreGeneration());
 }
 
-void HunterKillerState::Prepare(int activePlayerID) {
+void HunterKillerState::Prepare(const int activePlayerID) const
+{
     auto* pRemovedUnitIDs = new std::vector<int>();
     // We need to remove any units that belong to another player, and are not in the active player's FoV
-    auto* pPlayerFoV = GetActivePlayer().GetCombinedFieldOfView(*Map);
+    const auto* pPlayerFoV = GetActivePlayer().GetCombinedFieldOfView(*Map);
     Map->Prepare(activePlayerID, *pPlayerFoV, *pRemovedUnitIDs);
 
     // Tell the players to remove the affected unit-IDs from their collection
-    for (auto* pPlayer : *Players) {
-        for (int id : *pRemovedUnitIDs) {
+    for (const auto* pPlayer : *Players) {
+        for (const int id : *pRemovedUnitIDs) {
             pPlayer->RemoveUnit(id);
         }
     }

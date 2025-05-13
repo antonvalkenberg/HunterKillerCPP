@@ -6,7 +6,7 @@
 #include "IControlled.h"
 #include "MapFeature.h"
 
-class Structure :
+class Structure final :
     public MapFeature, public IControlled
 {
 public:
@@ -17,21 +17,21 @@ public:
     Structure* Copy() override;
     std::string ToString() override;
     std::string ToStringInformational() override;
-    StructureType GetStructureType() const { return TypeOfStructure; }
+    [[nodiscard]] StructureType GetStructureType() const { return TypeOfStructure; }
     TileType GetType() override { return BASE; }
-    bool IsControlledBy(const int playerID) const override { return ControllingPlayerID == playerID; }
-    int GetControllingPlayerID() const override { return ControllingPlayerID; }
+    [[nodiscard]] bool IsControlledBy(const int playerID) const override { return ControllingPlayerID == playerID; }
+    [[nodiscard]] int GetControllingPlayerID() const override { return ControllingPlayerID; }
     void SetControllingPlayerID(const int playerID) { ControllingPlayerID = playerID; }
-    bool IsUnderControl() const { return ControllingPlayerID != HunterKillerConstants::STRUCTURE_NO_CONTROL; }
-    bool GetIsCapturable() const { return IsCapturable; }
-    bool GetAllowsSpawning() const { return AllowsSpawning; }
+    [[nodiscard]] bool IsUnderControl() const { return ControllingPlayerID != HunterKillerConstants::STRUCTURE_NO_CONTROL; }
+    [[nodiscard]] bool GetIsCapturable() const { return IsCapturable; }
+    [[nodiscard]] bool GetAllowsSpawning() const { return AllowsSpawning; }
     [[nodiscard]] MapLocation* GetSpawnLocation() const { return SpawnLocation; }
     void SetSpawnLocation(MapLocation& rLocation) { SpawnLocation = &rLocation; }
-    bool GetGeneratesResource() const { return GeneratesResource; }
-    int GetResourceGeneration() const { return ResourceGeneration; }
-    bool GetGeneratesScore() const { return GeneratesScore; }
-    int GetScoreGeneration() const { return ScoreGeneration; }
-    bool GetIsCommandCenter() const { return IsCommandCenter; }
+    [[nodiscard]] bool GetGeneratesResource() const { return GeneratesResource; }
+    [[nodiscard]] int GetResourceGeneration() const { return ResourceGeneration; }
+    [[nodiscard]] bool GetGeneratesScore() const { return GeneratesScore; }
+    [[nodiscard]] int GetScoreGeneration() const { return ScoreGeneration; }
+    [[nodiscard]] bool GetIsCommandCenter() const { return IsCommandCenter; }
 private:
     StructureType TypeOfStructure = STRUCTURE_BASE;
     int ControllingPlayerID = HunterKillerConstants::STRUCTURE_NO_CONTROL;

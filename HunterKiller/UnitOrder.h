@@ -10,8 +10,8 @@ public:
     UnitOrder() = default;
     UnitOrder(const int unitID, const UnitOrderType orderType, const UnitType unitType) : HunterKillerOrder(unitID), OrderType(orderType), TypeOfUnit(unitType) {}
     ~UnitOrder() override = default;
-    UnitOrderType GetOrderType() const { return OrderType; }
-    UnitType GetUnitType() const { return TypeOfUnit; }
+    [[nodiscard]] UnitOrderType GetOrderType() const { return OrderType; }
+    [[nodiscard]] UnitType GetUnitType() const { return TypeOfUnit; }
     static UnitOrder* RotateUnit(const Unit& rUnit, bool clockwise);
     static UnitOrder* RotateUnit(const Unit& rUnit, Rotation rotation);
 private:

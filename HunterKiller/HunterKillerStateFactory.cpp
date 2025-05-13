@@ -137,7 +137,7 @@ HunterKillerState* HunterKillerStateFactory::GenerateInitialStateFromSetup(const
     }
 
     // Check if we need to randomise the sections, so on re-creation the same player does not end up in the same section each time.
-    if (!pOptions || (pOptions && pOptions->find(HunterKillerConstants::MAP_OPTION_NO_RANDOM_SECTIONS) == std::string::npos))
+    if (!pOptions || pOptions && pOptions->find(HunterKillerConstants::MAP_OPTION_NO_RANDOM_SECTIONS) == std::string::npos)
         std::ranges::shuffle(*pPlayerSections, HunterKillerConstants::RNG);
 
     auto* pPlayers = new std::vector<HunterKillerPlayer*>();

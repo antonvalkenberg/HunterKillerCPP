@@ -76,18 +76,18 @@ struct LineOfSight_CacheEntry {
     LineOfSight_CacheEntry(MapLocation& rLocation, const int range, const Direction direction, const float angleLimit) : Location(rLocation), Range(range), SomeDirection(direction), AngleLimit(angleLimit) {}
     bool operator==(const LineOfSight_CacheEntry& rCacheEntry) const { return this->Equals(rCacheEntry); }
     bool operator!=(const LineOfSight_CacheEntry& rCacheEntry) const { return !this->Equals(rCacheEntry); }
-    bool Equals(const LineOfSight_CacheEntry& rCacheEntry) const { return this->GetHashCode() == rCacheEntry.GetHashCode(); }
-    int GetHashCode() const { return 47 ^ Location.GetHashCode() ^ Range ^ static_cast<int>(SomeDirection) ^ static_cast<int>(AngleLimit); }
+    [[nodiscard]] bool Equals(const LineOfSight_CacheEntry& rCacheEntry) const { return this->GetHashCode() == rCacheEntry.GetHashCode(); }
+    [[nodiscard]] int GetHashCode() const { return 47 ^ Location.GetHashCode() ^ Range ^ static_cast<int>(SomeDirection) ^ static_cast<int>(AngleLimit); }
 };
 
 struct LineOfSight_Slope {
     int Y;
     int X;
     LineOfSight_Slope(const int y, const int x) : Y(y), X(x) {}
-    bool Greater(const int y, const int x) const { return Y * x > X * y; }
-    bool GreaterOrEqual(const int y, const int x) const { return Y * x >= X * y; }
-    bool Less(const int y, const int x) const { return Y * x < X* y; }
-    bool LessOrEqual(const int y, const int x) const { return Y * x <= X * y; }
+    [[nodiscard]] bool Greater(const int y, const int x) const { return Y * x > X * y; }
+    [[nodiscard]] bool GreaterOrEqual(const int y, const int x) const { return Y * x >= X * y; }
+    [[nodiscard]] bool Less(const int y, const int x) const { return Y * x < X* y; }
+    [[nodiscard]] bool LessOrEqual(const int y, const int x) const { return Y * x <= X * y; }
 };
 
 class IntPayload {
@@ -96,8 +96,8 @@ public:
     explicit IntPayload(const int value) : Value(value) {}
     ~IntPayload() = default;
     bool operator>(const IntPayload& rOther) const { return this->Value > rOther.Value; }
-    int GetHashCode() const { return Value; }
-    int GetValue() const { return Value; }
+    [[nodiscard]] int GetHashCode() const { return Value; }
+    [[nodiscard]] int GetValue() const { return Value; }
 private:
     int Value = 0;
 };

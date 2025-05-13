@@ -1,7 +1,7 @@
 #pragma once
 #include "Unit.h"
 
-class Infected
+class Infected final
     : public Unit
 {
 public:

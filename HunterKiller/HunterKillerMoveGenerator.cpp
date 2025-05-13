@@ -232,7 +232,7 @@ TargetedUnitOrder* HunterKillerMoveGenerator::GetRandomAttackOrder(const HunterK
         }
 
         // If we couldn't find a target, or if we found an allied mapfeature as target, continue
-        if (!pTarget || (pFeature && pTarget->GetControllingPlayerID() == rUnit.GetControllingPlayerID()))
+        if (!pTarget || pFeature && pTarget->GetControllingPlayerID() == rUnit.GetControllingPlayerID())
             continue;
 
         if (useSpecial)

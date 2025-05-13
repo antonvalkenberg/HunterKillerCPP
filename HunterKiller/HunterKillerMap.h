@@ -11,7 +11,6 @@
 #include "MapFeature.h"
 #include "Structure.h"
 #include "Unit.h"
-#include "UnitOrder.h"
 #include "TargetedUnitOrder.h"
 #include "packages/Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.6/build/native/include/gtest/gtest_prod.h"
 
@@ -25,26 +24,26 @@ public:
     HunterKillerMap(const std::string& name, int width, int height);
     ~HunterKillerMap();
     [[nodiscard]] HunterKillerMap* Copy() const { return new HunterKillerMap(*this); }
-    int GetHashCode() const;
-    const std::vector<std::vector<GameObject*>>& GetMapContent() const { return *MapContent; }
-    int ToPosition(const MapLocation& rLocation) const { return ToPosition(rLocation, MapWidth); }
+    [[nodiscard]] int GetHashCode() const;
+    [[nodiscard]] const std::vector<std::vector<GameObject*>>& GetMapContent() const { return *MapContent; }
+    [[nodiscard]] int ToPosition(const MapLocation& rLocation) const { return ToPosition(rLocation, MapWidth); }
     static int ToPosition(const MapLocation& rLocation, const int width) { return ToPosition(rLocation.GetX(), rLocation.GetY(), width); }
-    int ToPosition(const int x, const int y) const { return ToPosition(x, y, MapWidth); }
+    [[nodiscard]] int ToPosition(const int x, const int y) const { return ToPosition(x, y, MapWidth); }
     static int ToPosition(const int x, const int y, const int width) { return y * width + x; }
     [[nodiscard]] MapLocation& ToLocation(const int position) const { return *Locations->at(position); }
     [[nodiscard]] MapLocation& ToLocation(const int x, const int y) const { return ToLocation(ToPosition(x, y)); }
-    bool IsXOnMap(const int x) const { return x >= 0 && x < MapWidth; }
-    bool IsYOnMap(const int y) const { return y >= 0 && y < MapHeight; }
-    bool IsOnMap(const MapLocation& rLocation) const { return IsXOnMap(rLocation.GetX()) && IsYOnMap(rLocation.GetY()); }
+    [[nodiscard]] bool IsXOnMap(const int x) const { return x >= 0 && x < MapWidth; }
+    [[nodiscard]] bool IsYOnMap(const int y) const { return y >= 0 && y < MapHeight; }
+    [[nodiscard]] bool IsOnMap(const MapLocation& rLocation) const { return IsXOnMap(rLocation.GetX()) && IsYOnMap(rLocation.GetY()); }
     bool IsTraversable(const MapLocation& rLocation, std::string* pFailureReasons) const;
-    bool IsTraversable(const MapLocation& rLocation) const { return IsTraversable(rLocation, nullptr); }
-    bool IsMovePossible(const MapLocation& rFromLocation, TargetedUnitOrder& rMove, std::string* pFailureReasons) const;
-    bool IsMovePossible(const MapLocation& rFromLocation, Direction direction) const;
+    [[nodiscard]] bool IsTraversable(const MapLocation& rLocation) const { return IsTraversable(rLocation, nullptr); }
+    bool IsMovePossible(const MapLocation& rFromLocation, const TargetedUnitOrder& rMove, std::string* pFailureReasons) const;
+    [[nodiscard]] bool IsMovePossible(const MapLocation& rFromLocation, Direction direction) const;
     bool Move(const MapLocation& rTargetLocation, GameObject& rGameObject, std::string* pFailureReasons);
     [[nodiscard]] MapLocation* GetLocationInDirection(const MapLocation& rFromLocation, Direction direction, int distance) const;
     [[nodiscard]] MapLocation* GetAdjacentLocationInDirection(const MapLocation& rLocation, const Direction direction) const { return GetLocationInDirection(rLocation, direction, 1); }
-    int GetPositionInDirection(int position, Direction direction, int distance) const;
-    int GetMaxTravelDistance(const MapLocation& rLocation, Direction direction) const;
+    [[nodiscard]] int GetPositionInDirection(int position, Direction direction, int distance) const;
+    [[nodiscard]] int GetMaxTravelDistance(const MapLocation& rLocation, Direction direction) const;
     void GetNeighbours(const MapLocation& rLocation, std::unordered_set<MapLocation, MapLocationHash>& rNeighbourCollection) const;
     void GetAreaAround(const MapLocation& rLocation, bool includeCentre, std::unordered_set<MapLocation, MapLocationHash>& rAreaCollection) const;
     void GetMapFeaturesAround(const MapLocation& rLocation, std::vector<std::vector<MapFeature*>>& rAreaCollection) const;
@@ -55,9 +54,9 @@ public:
     [[nodiscard]] MapLocation* GetObjectLocation(int objectID) const;
     [[nodiscard]] Unit* GetUnitAtLocation(const MapLocation& rLocation) const;
     [[nodiscard]] MapFeature* GetFeatureAtLocation(const MapLocation& rLocation) const;
-    int GetCurrentCommandCenterCount() const { if (!CommandCenterObjectIDs) return 0; return static_cast<int>(CommandCenterObjectIDs->size()); }
-    bool IsAttackOrderTargetingAllyStructure(TargetedUnitOrder& rOrder, const Unit* pUnit) const;
-    bool IsAttackOrderTargetingAllyUnit(TargetedUnitOrder& rOrder, const Unit* pUnit) const;
+    [[nodiscard]] int GetCurrentCommandCenterCount() const { if (!CommandCenterObjectIDs) return 0; return static_cast<int>(CommandCenterObjectIDs->size()); }
+    bool IsAttackOrderTargetingAllyStructure(const TargetedUnitOrder& rOrder, const Unit* pUnit) const;
+    bool IsAttackOrderTargetingAllyUnit(const TargetedUnitOrder& rOrder, const Unit* pUnit) const;
     void RegisterGameObject(GameObject* pGameObject) const;
     void UnregisterGameObject(GameObject* pGameObject) const;
     void UpdateFieldOfView();
@@ -67,17 +66,17 @@ public:
     bool Remove(const MapLocation& rLocation, GameObject* pObject) const { return Remove(ToPosition(rLocation), pObject); }
     bool Remove(int position, GameObject* pObject) const;
     [[nodiscard]] std::vector<MapLocation*>* FindPath(const MapLocation& rFrom, const MapLocation& rTo) const;
-    std::string ToString() const;
+    [[nodiscard]] std::string ToString() const;
     void Timer();
     bool TryCloseDoor(Door& rDoor) const;
-    bool BlocksLight(int x, int y) const;
+    [[nodiscard]] bool BlocksLight(int x, int y) const;
     // Distance of x,y coordinates relative to 0,0. Used in Line-of-Sight calculations.
-    int GetManhattanDistance(const int x, const int y) const { return MapLocation::GetManhattanDistance(0, 0, x, y); }
+    [[nodiscard]] int GetManhattanDistance(const int x, const int y) const { return MapLocation::GetManhattanDistance(0, 0, x, y); }
     // Distance of x,y coordinates relative to 0,0. Used in Line-of-Sight calculations.
-    double GetEuclideanDistance(const int x, const int y) const { return MapLocation::GetEuclideanDistance(0, 0, x, y); }
-    const std::string& GetName() const { return Name; }
-    int GetMapHeight() const { return MapHeight; }
-    int GetMapWidth() const { return MapWidth; }
+    [[nodiscard]] double GetEuclideanDistance(const int x, const int y) const { return MapLocation::GetEuclideanDistance(0, 0, x, y); }
+    [[nodiscard]] const std::string& GetName() const { return Name; }
+    [[nodiscard]] int GetMapHeight() const { return MapHeight; }
+    [[nodiscard]] int GetMapWidth() const { return MapWidth; }
     [[nodiscard]] std::vector<int>* GetIDBuffer() const { return IDBuffer; }
     [[nodiscard]] std::vector<int>* GetCommandCenterObjectIDs() const { return CommandCenterObjectIDs; }
 private:
@@ -100,6 +99,6 @@ private:
 protected:
     void CopyMapContent(std::vector<std::vector<GameObject*>>* pCopyTo, std::unordered_map<int, GameObject*>* pCopiedObjects) const;
     void SetMapContent(std::vector<std::vector<GameObject*>>* pNewMapContent) { delete MapContent; MapContent = pNewMapContent; }
-    bool AttackLocation(const MapLocation& rLocation, int damage) const;
-    void Prepare(int activePlayerID, std::unordered_set<MapLocation, MapLocationHash>& rPlayerFieldOfView, std::vector<int>& rRemovedUnitIDs);
+    [[nodiscard]] bool AttackLocation(const MapLocation& rLocation, int damage) const;
+    void Prepare(int activePlayerID, const std::unordered_set<MapLocation, MapLocationHash>& rPlayerFieldOfView, std::vector<int>& rRemovedUnitIDs) const;
 };

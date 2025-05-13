@@ -1,7 +1,7 @@
 #pragma once
 #include "Unit.h"
 
-class Soldier
+class Soldier final
     : public Unit
 {
 public:

@@ -28,7 +28,7 @@ public:
     void Compute(MapLocation& rOrigin, int rangeLimit, std::unordered_set<MapLocation, MapLocationHash>& rVisibleLocations, HunterKillerMap& rMap);
     void Compute(MapLocation& rOrigin, int rangeLimit, Direction facing, float angleLimit, std::unordered_set<MapLocation, MapLocationHash>& rVisibleLocations, HunterKillerMap& rMap);
     void CacheVisibleLocations(const LineOfSight_CacheEntry& rEntry, const std::unordered_set<MapLocation, MapLocationHash>& rVisibleLocations) const;
-    bool HaveCached(const LineOfSight_CacheEntry& rEntry) const;
+    [[nodiscard]] bool HaveCached(const LineOfSight_CacheEntry& rEntry) const;
     [[nodiscard]] std::unordered_set<MapLocation, MapLocationHash>* GetFromCache(const LineOfSight_CacheEntry& rEntry) const;
     [[nodiscard]] GetDistanceFunction GetDistanceType() const;
 private:
@@ -38,7 +38,7 @@ private:
     @author Anton Valkenberg (anton.valkenberg@gmail.com)
     */
     void Compute(int octant, MapLocation& rMapOrigin, int rangeLimit, float facingAngle, float halfAngleLimit, int x, LineOfSight_Slope& top, LineOfSight_Slope& bottom, std::unordered_set<MapLocation, MapLocationHash>& rVisibleLocations, HunterKillerMap& rMap);
-    bool IsAngleOutOfBounds(int x, int y, const MapLocation& rMapOrigin, float facingAngle, float halfAngleLimit) const;
+    [[nodiscard]] bool IsAngleOutOfBounds(int x, int y, const MapLocation& rMapOrigin, float facingAngle, float halfAngleLimit) const;
     bool BlocksLightRef(int x, int y, int octant, const MapLocation& rMapOrigin, float facingAngle, float halfAngleLimit, HunterKillerMap& rMap);
     void SetVisibleRef(int x, int y, int octant, const MapLocation& rMapOrigin, float facingAngle, float halfAngleLimit, std::unordered_set<MapLocation, MapLocationHash>& rVisibleLocations, const HunterKillerMap& rMap) const;
     static void TranslateOctantCoordsToMapCoords(int octantX, int octantY, int octant, int& rMapX, int& rMapY);

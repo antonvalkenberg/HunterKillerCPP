@@ -2,7 +2,7 @@
 #include "Enums.h"
 #include "MapFeature.h"
 
-class Door :
+class Door final :
     public MapFeature
 {
 public:
@@ -14,9 +14,9 @@ public:
     Door* Copy() override;
     std::string ToString() override { return IsOpen() ? std::format("{}", static_cast<char>(DOOR_OPEN)) : std::format("{}", static_cast<char>(DOOR_CLOSED)); }
     std::string ToStringInformational() override { return std::format("Door, Indestructible, {0}", IsOpen() ? std::format("Open; closes in {0} rounds", GetOpenTimer()) : "Closed"); }
-    TileType GetType() override { return IsOpen() ? TileType::DOOR_OPEN : TileType::DOOR_CLOSED; }
-    int GetOpenTimer() const { return OpenTimer; }
-    bool IsOpen() const { return !IsBlockingLOS; }
+    TileType GetType() override { return IsOpen() ? DOOR_OPEN : DOOR_CLOSED; }
+    [[nodiscard]] int GetOpenTimer() const { return OpenTimer; }
+    [[nodiscard]] bool IsOpen() const { return !IsBlockingLOS; }
     void Open();
     void KeepOpen();
     void Close();

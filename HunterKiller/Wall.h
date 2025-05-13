@@ -2,7 +2,7 @@
 #include "Enums.h"
 #include "MapFeature.h"
 
-class Wall :
+class Wall final :
     public MapFeature
 {
 public:
@@ -13,6 +13,6 @@ public:
     Wall* Copy() override { return new Wall(*this); }
     std::string ToString() override { return std::format("{}", static_cast<char>(WALL)); }
     std::string ToStringInformational() override { return ToString(); }
-    TileType GetType() override { return TileType::WALL; }
+    TileType GetType() override { return WALL; }
 };
 

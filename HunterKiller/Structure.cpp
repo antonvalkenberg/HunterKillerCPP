@@ -90,7 +90,7 @@ std::string Structure::ToStringInformational() {
 	case STRUCTURE_OUTPOST:
 		return std::format("Outpost{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
 	case STRUCTURE_STRONGHOLD:
-		return std::format("Stonghold{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
+		return std::format("Stronghold{0}{1}{2}{3}", hpText, spawnText, resourceText, scoreText);
 	default:
 		return "?";
 	}

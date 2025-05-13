@@ -14,28 +14,28 @@ public:
     virtual void StartCooldown() = 0;
     Unit* Copy() override = 0;
     std::string ToString() override = 0;
-    int GetControllingPlayerID() const override;
-    bool IsControlledBy(int playerID) const override;
+    [[nodiscard]] int GetControllingPlayerID() const override;
+    [[nodiscard]] bool IsControlledBy(int playerID) const override;
     void SetSpecialAttackCooldown(const int cooldownRemaining) { SpecialAttackCooldown = cooldownRemaining; }
     void ReduceCooldown() { if (SpecialAttackCooldown > 0) SpecialAttackCooldown--; }
-    bool IsFieldOfViewValid() const { return FieldOfViewValid; }
-    bool IsInFieldOfView(const MapLocation& rLocation) const { return (FieldOfView && FieldOfView->contains(rLocation)); }
+    [[nodiscard]] bool IsFieldOfViewValid() const { return FieldOfViewValid; }
+    [[nodiscard]] bool IsInFieldOfView(const MapLocation& rLocation) const { return FieldOfView && FieldOfView->contains(rLocation); }
     void UpdateFieldOfView(std::unordered_set<MapLocation, MapLocationHash>* pFieldOfView) { delete FieldOfView; FieldOfView = pFieldOfView; FieldOfViewValid = true; }
     void InvalidateFieldOfView() { delete FieldOfView; FieldOfView = nullptr; FieldOfViewValid = false; }
     static int GetAttackRange(UnitType unitType);
     static int GetSpawnCost(UnitType unitType);
-    bool IsWithinRange(const MapLocation& rLocation, const int range) const { return MapLocation::GetManhattanDistance(this->GetLocation(), rLocation) <= range; }
-    bool CanUseSpecialAttack() const { return SpecialAttackCooldown == 0; }
-    UnitType GetType() const { return TypeOfUnit; }
-    Direction GetOrientation() const { return Orientation; }
+    [[nodiscard]] bool IsWithinRange(const MapLocation& rLocation, const int range) const { return MapLocation::GetManhattanDistance(this->GetLocation(), rLocation) <= range; }
+    [[nodiscard]] bool CanUseSpecialAttack() const { return SpecialAttackCooldown == 0; }
+    [[nodiscard]] UnitType GetType() const { return TypeOfUnit; }
+    [[nodiscard]] Direction GetOrientation() const { return Orientation; }
     void SetOrientation(const Direction orientation) { Orientation = orientation; }
-    int GetFieldOfViewRange() const { return FieldOfViewRange; }
-    int GetFieldOfViewAngle() const { return FieldOfViewAngle; }
-    int GetAttackRange() const { return AttackRange; }
-    int GetAttackDamage() const { return AttackDamage; }
-    int GetSpecialAttackCooldown() const { return SpecialAttackCooldown; }
-    int GetSpawnCost() const { return SpawnCost; }
-    int GetScoreWorth() const { return ScoreWorth; }
+    [[nodiscard]] int GetFieldOfViewRange() const { return FieldOfViewRange; }
+    [[nodiscard]] int GetFieldOfViewAngle() const { return FieldOfViewAngle; }
+    [[nodiscard]] int GetAttackRange() const { return AttackRange; }
+    [[nodiscard]] int GetAttackDamage() const { return AttackDamage; }
+    [[nodiscard]] int GetSpecialAttackCooldown() const { return SpecialAttackCooldown; }
+    [[nodiscard]] int GetSpawnCost() const { return SpawnCost; }
+    [[nodiscard]] int GetScoreWorth() const { return ScoreWorth; }
     [[nodiscard]] std::unordered_set<MapLocation, MapLocationHash>* GetFieldOfView() const { return FieldOfView; }
 private:
     int ControllingPlayerID = -1;

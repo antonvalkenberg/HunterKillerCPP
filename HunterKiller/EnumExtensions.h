@@ -16,12 +16,12 @@ public:
     {
         switch (facing)
         {
-        case NORTH: return (rotation == CLOCKWISE) ? EAST : WEST;
-        case EAST: return (rotation == CLOCKWISE) ? SOUTH : NORTH;
-        case SOUTH: return (rotation == CLOCKWISE) ? WEST : EAST;
-        case WEST: return (rotation == CLOCKWISE) ? NORTH : SOUTH;
+        case NORTH: return rotation == CLOCKWISE ? EAST : WEST;
+        case EAST: return rotation == CLOCKWISE ? SOUTH : NORTH;
+        case SOUTH: return rotation == CLOCKWISE ? WEST : EAST;
+        case WEST: return rotation == CLOCKWISE ? NORTH : SOUTH;
         default:
-            throw std::invalid_argument(std::format("Unsupported Direction provided when rotating: '{}'\n", (int)facing));
+            throw std::invalid_argument(std::format("Unsupported Direction provided when rotating: '{}'\n", static_cast<int>(facing)));
         }
     }
     static Direction TryGetOppositeDirection(const Direction direction) {
@@ -32,7 +32,7 @@ public:
         case SOUTH: return NORTH;
         case WEST: return EAST;
         default:
-            throw std::invalid_argument(std::format("Unsupported Direction provided when getting opposite direction: '{}'\n", (int)direction));
+            throw std::invalid_argument(std::format("Unsupported Direction provided when getting opposite direction: '{}'\n", static_cast<int>(direction)));
         }
     }
     static Direction TryParseDirection(const char dir)

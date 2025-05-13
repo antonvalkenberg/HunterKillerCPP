@@ -1,7 +1,7 @@
 #pragma once
 #include "BaseBot.h"
 
-class QuickRandomBot :
+class QuickRandomBot final :
     public BaseBot
 {
 public:

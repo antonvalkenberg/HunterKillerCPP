@@ -41,7 +41,7 @@ TEST_F(LineOfSightTest, TestOpenVision)
     for (int i = 0; i < 16; ++i)
     {
         pMapContent->at(i).resize(2);
-        Floor* pFloor = new Floor(TestMap->ToLocation(i));
+        auto pFloor = new Floor(TestMap->ToLocation(i));
         TestMap->RegisterGameObject(pFloor);
         pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pFloor;
     }
@@ -50,7 +50,7 @@ TEST_F(LineOfSightTest, TestOpenVision)
     // In the next sections, when visualizing the FOV; '.' refers to visible tiles, and '#' refers to obscured tiles.
 
     // Create a new soldier at [1,1] facing NORTH
-    Soldier* pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pSoldier);
     TestMap->Place(TestMap->ToLocation(1, 1), pSoldier);
     auto* pNorthFoV = TestMap->GetFieldOfView(*pSoldier);
@@ -123,7 +123,7 @@ TEST_F(LineOfSightTest, TestOpenVision)
     delete pSoldier; pSoldier = nullptr;
 
     // Create a new infected at [1,2]
-    Infected* pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pInfected);
     TestMap->Place(TestMap->ToLocation(1, 2), pInfected);
     // Get the field-of-view for the infected
@@ -175,15 +175,14 @@ TEST_F(LineOfSightTest, TestWallVision)
     for (int i = 0; i < 16; ++i)
     {
         pMapContent->at(i).resize(2);
-        MapLocation& rLocation = TestMap->ToLocation(i);
-        if (rLocation.GetX() == 2)
+        if (MapLocation& rLocation = TestMap->ToLocation(i); rLocation.GetX() == 2)
         {
-            Wall* pWall = new Wall(rLocation);
+            auto pWall = new Wall(rLocation);
             TestMap->RegisterGameObject(pWall);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pWall;
         }
         else {
-            Floor* pFloor = new Floor(rLocation);
+            auto* pFloor = new Floor(rLocation);
             TestMap->RegisterGameObject(pFloor);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pFloor;
         }
@@ -193,7 +192,7 @@ TEST_F(LineOfSightTest, TestWallVision)
     // In the next sections, when visualizing the FOV; '.' refers to visible tiles, and '#' refers to obscured tiles.
 
     // Create a new soldier at [1,1] facing NORTH
-    Soldier* pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pSoldier);
     TestMap->Place(TestMap->ToLocation(1, 1), pSoldier);
     auto* pNorthFoV = TestMap->GetFieldOfView(*pSoldier);
@@ -265,7 +264,7 @@ TEST_F(LineOfSightTest, TestWallVision)
     delete pSoldier; pSoldier = nullptr;
 
     // Create a new infected at [1,2]
-    Infected* pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pInfected);
     TestMap->Place(TestMap->ToLocation(1, 2), pInfected);
     // Get the field-of-view for the infected
@@ -316,12 +315,12 @@ TEST_F(LineOfSightTest, TestCornerVision)
         MapLocation& rLocation = TestMap->ToLocation(i);
         if (i == 4)
         {
-            Wall* pWall = new Wall(rLocation);
+            auto pWall = new Wall(rLocation);
             TestMap->RegisterGameObject(pWall);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pWall;
         }
         else {
-            Floor* pFloor = new Floor(rLocation);
+            auto* pFloor = new Floor(rLocation);
             TestMap->RegisterGameObject(pFloor);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pFloor;
         }
@@ -331,7 +330,7 @@ TEST_F(LineOfSightTest, TestCornerVision)
     // In the next sections, when visualizing the FOV; '.' refers to visible tiles, and '#' refers to obscured tiles.
 
     // Create a new soldier at [0,0] facing EAST
-    Soldier* pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, EAST);
+    auto pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, EAST);
     TestMap->RegisterGameObject(pSoldier);
     TestMap->Place(TestMap->ToLocation(0,0), pSoldier);
 
@@ -371,7 +370,7 @@ TEST_F(LineOfSightTest, TestCornerVision)
     delete pSoldier; pSoldier = nullptr;
 
     // Create a new infected at [0,0]
-    Infected* pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pInfected);
     TestMap->Place(TestMap->ToLocation(0,0), pInfected);
     // Get the field-of-view for the infected
@@ -419,12 +418,12 @@ TEST_F(LineOfSightTest, TestRoomVision) {
         MapLocation& rLocation = TestMap->ToLocation(i);
         if (i == 5 || i == 6 || i == 7 || i == 9 || i == 13)
         {
-            Wall* pWall = new Wall(rLocation);
+            auto pWall = new Wall(rLocation);
             TestMap->RegisterGameObject(pWall);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pWall;
         }
         else {
-            Floor* pFloor = new Floor(rLocation);
+            auto* pFloor = new Floor(rLocation);
             TestMap->RegisterGameObject(pFloor);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pFloor;
         }
@@ -434,7 +433,7 @@ TEST_F(LineOfSightTest, TestRoomVision) {
     // In the next sections, when visualizing the FOV; '.' refers to visible tiles, and '#' refers to obscured tiles.
 
     // Create a new soldier at [3,3] facing WEST
-    Soldier* pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, WEST);
+    auto pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, WEST);
     TestMap->RegisterGameObject(pSoldier);
     TestMap->Place(TestMap->ToLocation(3, 3), pSoldier);
 
@@ -475,7 +474,7 @@ TEST_F(LineOfSightTest, TestRoomVision) {
     delete pSoldier; pSoldier = nullptr;
 
     // Create a new infected at [3,3]
-    Infected* pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pInfected = new Infected(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pInfected);
     TestMap->Place(TestMap->ToLocation(3, 3), pInfected);
     // Get the field-of-view for the infected
@@ -522,18 +521,18 @@ TEST_F(LineOfSightTest, TestDoorVision) {
         MapLocation& rLocation = TestMap->ToLocation(i);
         if (i == 5 || i == 7 || i == 9 || i == 13)
         {
-            Wall* pWall = new Wall(rLocation);
+            auto pWall = new Wall(rLocation);
             TestMap->RegisterGameObject(pWall);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pWall;
         }
         else if (i == 6)
         {
-            Door* pDoor = new Door(rLocation);
+            auto pDoor = new Door(rLocation);
             TestMap->RegisterGameObject(pDoor);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pDoor;
         }
         else {
-            Floor* pFloor = new Floor(rLocation);
+            auto* pFloor = new Floor(rLocation);
             TestMap->RegisterGameObject(pFloor);
             pMapContent->at(i)[HunterKillerConstants::MAP_INTERNAL_FEATURE_INDEX] = pFloor;
         }
@@ -543,7 +542,7 @@ TEST_F(LineOfSightTest, TestDoorVision) {
     // In the next sections, when visualizing the FOV; '.' refers to visible tiles, and '#' refers to obscured tiles.
 
     // Create a new soldier at [2,3] facing NORTH
-    Soldier* pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
+    auto pSoldier = new Soldier(0, *HunterKillerConstants::GAMEOBJECT_NOT_PLACED, NORTH);
     TestMap->RegisterGameObject(pSoldier);
     TestMap->Place(TestMap->ToLocation(2, 3), pSoldier);
 
@@ -565,7 +564,7 @@ TEST_F(LineOfSightTest, TestDoorVision) {
     delete pNorthFOV; pNorthFOV = nullptr;
 
     // Open the Door
-    Door* pDoor = dynamic_cast<Door*>(TestMap->GetFeatureAtLocation(TestMap->ToLocation(2, 1)));
+    auto pDoor = dynamic_cast<Door*>(TestMap->GetFeatureAtLocation(TestMap->ToLocation(2, 1)));
     pDoor->Open();
 
     // Update the soldier's field-of-view

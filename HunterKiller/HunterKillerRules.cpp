@@ -23,7 +23,7 @@ Result* HunterKillerRules::Handle(HunterKillerState& rState, const HunterKillerA
 
     Result* pActionResult = PerformAction(rState, rAction);
     // We need to check if the state is a completed state before ending the turn, because ending the turn rolls over some variables like turncounter and activeplayer
-    bool stateIsDone = rState.IsDone();
+    const bool stateIsDone = rState.IsDone();
     rState.EndPlayerTurn();
 
     if (stateIsDone)
@@ -85,10 +85,11 @@ Result* HunterKillerRules::PerformAction(const HunterKillerState& rState, const 
 
     rState.GetActivePlayer().Stats->Failed += failCount;
 
-    // ReSharper disable CppRedundantBooleanExpressionArgument
+    // ReSharper disable once CppIfCanBeReplacedByConstexprIf
+    // ReSharper disable CppUnreachableCode
     if (LOG_TO_CONSOLE && pActionFailures && failCount > 0)
-        // ReSharper restore CppRedundantBooleanExpressionArgument
         std::cout << std::format("P({0:d})R({1:d}): {2:d} orders failed, reasons: \n{3:s}\n", rAction.GetActingPlayerID(), rState.GetCurrentRound(), failCount, *pActionFailures);
+    // ReSharper enable CppUnreachableCode
 
     const auto* pInformation = new std::string(pActionFailures && failCount > 0 ? std::format("{0:d} orders failed, reasons: \n{1:s}\n", failCount, *pActionFailures) : "");
     return new Result(true, pInformation);
@@ -101,6 +102,7 @@ void HunterKillerRules::ExecuteOrder(const HunterKillerState& rState, HunterKill
 
     HunterKillerMap& rMap = rState.GetMap();
     HunterKillerPlayer& rActivePlayer = rState.GetActivePlayer();
+    // ReSharper disable once CppUseStructuredBinding
     OrderStatistics& rStats = rActivePlayer.GetOrderStatistics();
     GameObject* pOrderObject = rMap.GetObject(rOrder.GetObjectID());
 
@@ -165,9 +167,15 @@ void HunterKillerRules::ExecuteOrder(const HunterKillerState& rState, HunterKill
             pUnit->InvalidateFieldOfView();
             ++rStats.RotateCounter;
             break;
+        // The below cases are targeted unit orders and therefore handled separately
+        case MOVE:
+        case ATTACK:
+        case ATTACK_SPECIAL:
+        default:
+            break;
         }
 
-        if (TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(&rOrder); pTargetedUnitOrder) {
+        if (const TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(&rOrder); pTargetedUnitOrder) {
             MapLocation& rTargetLocation = pTargetedUnitOrder->GetTargetLocation();
 
             switch (type)
@@ -362,21 +370,19 @@ bool HunterKillerRules::IsOrderPossible(const HunterKillerState& rState, HunterK
     if (const UnitOrder* pUnitOrder = dynamic_cast<UnitOrder*>(&rOrder); pUnitOrder)
     {
         // Make sure that the order-object is a unit
-        const Unit* pUnit = dynamic_cast<Unit*>(pOrderObject);
-        if (!pUnit)
+        if (const Unit* pUnit = dynamic_cast<Unit*>(pOrderObject); !pUnit)
         {
             if (pFailureReasons)
                 *pFailureReasons += std::format("UnitOrder fail for ID {0:d}: Source object is not a Unit.\n", pUnitOrder->GetObjectID());
             return false;
         }
 
-        const UnitOrderType type = pUnitOrder->GetOrderType();
         // Rotations don't need any other checks
-        if (type == ROTATE_CLOCKWISE || type == ROTATE_COUNTER_CLOCKWISE)
+        if (const UnitOrderType type = pUnitOrder->GetOrderType(); type == ROTATE_CLOCKWISE || type == ROTATE_COUNTER_CLOCKWISE)
             return true;
     }
 
-    if (TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(&rOrder); pTargetedUnitOrder)
+    if (const TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(&rOrder); pTargetedUnitOrder)
     {
         // Make sure a target location has been set
         const MapLocation& rTargetLocation = pTargetedUnitOrder->GetTargetLocation();

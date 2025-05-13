@@ -1,5 +1,6 @@
 // ReSharper disable CommentTypo
 // ReSharper disable CppClangTidyBugproneBranchClone
+// ReSharper disable CppTooWideScopeInitStatement
 #include "LineOfSight.h"
 
 #include <iostream>
@@ -15,7 +16,7 @@ void LineOfSight::Compute(MapLocation& rOrigin, const int rangeLimit, const Dire
 {
 	rVisibleLocations.emplace(rOrigin);
 
-    const float facingAngle = static_cast<float>(facing);
+    const auto facingAngle = static_cast<float>(facing);
     const float halfAngleLimit = angleLimit / 2.0f;
 
     // Make a new vector set to the facing angle.
@@ -168,7 +169,8 @@ void LineOfSight::Compute(const int octant, MapLocation& rMapOrigin, const int r
 
 				// CODEPOKE adjustment for full symmetry
 				// boolean isVisible = isOpaque || ((y != topY || top.greater(y * 4 - 1, x * 4 + 1)) && (y != bottomY || bottom.less(y * 4 + 1, x * 4 - 1)));
-				bool isVisible = (y != topY || top.GreaterOrEqual(y, x)) && (y != bottomY || bottom.LessOrEqual(y, x));
+                // ReSharper disable once CppTooWideScope
+                const bool isVisible = (y != topY || top.GreaterOrEqual(y, x)) && (y != bottomY || bottom.LessOrEqual(y, x));
 
                 // NOTE: if you want the algorithm to be either fully or mostly symmetrical, replace the line above with the following line (and uncomment the LineOfSight_Slope.LessOrEqual method).
 				// the line ensures that a clear tile is visible only if there's an unobstructed line to its centre.
@@ -265,8 +267,9 @@ bool LineOfSight::IsAngleOutOfBounds(int x, int y, const MapLocation& rMapOrigin
 
 	bool oob = delta > halfAngleLimit && delta < 360 - halfAngleLimit;
 	if (DEBUG)
+        // ReSharper disable once CppUnreachableCode
         std::cout << std::format("Origin {0:s} | Location [{1:d},{2:d}] | Angle {3:4.2f} | Facing {4:4.2f} | Half-Limit {5:4.2f} | Delta {6:4.2f} | OoB {7} \n",
-	    rMapOrigin.ToString(), x, y, angle, facingAngle, halfAngleLimit, delta, oob);
+                                 rMapOrigin.ToString(), x, y, angle, facingAngle, halfAngleLimit, delta, oob);
 
 	return oob;
 }

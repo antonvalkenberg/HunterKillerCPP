@@ -14,11 +14,11 @@ public:
     bool operator!=(MapFeature& rMapFeature) { return !(*this == rMapFeature); }
     bool Equals(MapFeature& rMapFeature) { return *this == rMapFeature; }
     int GetHashCode() override { return 47 ^ GetID() ^ GetLocation().GetHashCode() ^ GetCurrentHP(); }
-    bool GetIsDestructible() const { return IsDestructible; }
+    [[nodiscard]] bool GetIsDestructible() const { return IsDestructible; }
     void SetDestructible(const bool isDestructible) { IsDestructible = isDestructible; }
-    bool GetIsWalkable() const { return IsWalkable; }
+    [[nodiscard]] bool GetIsWalkable() const { return IsWalkable; }
     void SetWalkable(const bool isWalkable) { IsWalkable = isWalkable; }
-    bool GetIsBlockingLOS() const { return IsBlockingLOS; }
+    [[nodiscard]] bool GetIsBlockingLOS() const { return IsBlockingLOS; }
     virtual TileType GetType() = 0;
 private:
     bool IsDestructible = HunterKillerConstants::MAPFEATURE_DEFAULT_DESTRUCTIBLE;

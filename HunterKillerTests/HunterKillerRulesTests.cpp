@@ -16,7 +16,7 @@ protected:
     {
         delete State; State = nullptr;
         delete Factory; Factory = nullptr;
-        for (auto* pName : *PlayerNames)
+        for (const auto* pName : *PlayerNames)
         {
             delete pName; pName = nullptr;
         }
@@ -56,8 +56,8 @@ TEST_F(AttackTest, UnitDeath)
     pTargetUnit->ReduceHP(pTargetUnit->GetCurrentHP() - HunterKillerConstants::SOLDIER_ATTACK_DAMAGE);
 
     // Create an order to attack the target location
-    auto* pAttackAction = new HunterKillerAction(*State);
-    auto* pAttackOrder = new UnitOrder(pUnit->GetID(), ATTACK, UNIT_SOLDIER, rTargetLocation);
+    const auto* pAttackAction = new HunterKillerAction(*State);
+    auto* pAttackOrder = new TargetedUnitOrder(pUnit->GetID(), ATTACK, UNIT_SOLDIER, rTargetLocation);
     pAttackAction->TryAddOrder(pAttackOrder);
 
     // Make the game logic execute the action

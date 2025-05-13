@@ -14,7 +14,7 @@ public:
     HunterKillerPlayer(const int id, const std::string& name, const int mapSection) : HunterKillerPlayer(id, name, mapSection, HunterKillerConstants::PLAYER_STARTING_RESOURCE) {}
     HunterKillerPlayer(const int id, const std::string& name, const int mapSection, const int startingResources) : Name(name), ID(id), MapSection(mapSection), Resource(startingResources) {}
     ~HunterKillerPlayer();
-    int GetHashCode() const { return ID; }
+    [[nodiscard]] int GetHashCode() const { return ID; }
     std::string ToString() { return std::format("{0:s} (ID: {1:d})", Name, ID); }
     [[nodiscard]] HunterKillerPlayer* Copy() const;
     [[nodiscard]] std::unordered_set<MapLocation, MapLocationHash>* GetCombinedFieldOfView(HunterKillerMap& rMap) const;
@@ -24,19 +24,19 @@ public:
     void AwardResource(const int amount) { Resource += amount; }
     void AssignCommandCenter(const Structure& rCommandCenter) { CommandCenterID = rCommandCenter.GetID(); }
     void AddUnit(const int unitID) const { UnitIDs->push_back(unitID); }
-    void RemoveUnit(const int unitID) const { UnitIDs->erase(std::remove(UnitIDs->begin(), UnitIDs->end(), unitID), UnitIDs->end()); }
+    void RemoveUnit(const int unitID) const { std::erase(*UnitIDs, unitID); }
     void AddStructure(const int structureID) const { StructureIDs->push_back(structureID); }
-    void RemoveStructure(const int structureID) const { StructureIDs->erase(std::remove(StructureIDs->begin(), StructureIDs->end(), structureID), StructureIDs->end()); }
+    void RemoveStructure(const int structureID) const { std::erase(*StructureIDs, structureID); }
     void InformCommandCenterDestroyed(const HunterKillerMap& rMap, int commandCenterID);
-    const std::string& GetName() const { return Name; }
-    int GetID() const { return ID; }
-    int GetMapSection() const { return MapSection; }
-    int GetCommandCenterID() const { return CommandCenterID; }
+    [[nodiscard]] const std::string& GetName() const { return Name; }
+    [[nodiscard]] int GetID() const { return ID; }
+    [[nodiscard]] int GetMapSection() const { return MapSection; }
+    [[nodiscard]] int GetCommandCenterID() const { return CommandCenterID; }
     [[nodiscard]] std::vector<int>& GetStructureIDs() const { return *StructureIDs; }
     [[nodiscard]] std::vector<int>& GetUnitIDs() const { return *UnitIDs; }
-    int GetScore() const { return Score; }
+    [[nodiscard]] int GetScore() const { return Score; }
     [[nodiscard]] OrderStatistics& GetOrderStatistics() const { return *Stats; }
-    int GetResource() const { return Resource; }
+    [[nodiscard]] int GetResource() const { return Resource; }
 private:
     const std::string& Name;
     int ID = -1;

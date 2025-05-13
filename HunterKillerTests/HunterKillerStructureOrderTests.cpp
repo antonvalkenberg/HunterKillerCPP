@@ -18,7 +18,7 @@ protected:
     {
 		delete State; State = nullptr;
 		delete Factory; Factory = nullptr;
-		for (auto* pName : *PlayerNames)
+		for (const auto* pName : *PlayerNames)
 		{
 			delete pName; pName = nullptr;
 		}

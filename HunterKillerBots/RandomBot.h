@@ -1,7 +1,7 @@
 #pragma once
 #include "BaseBot.h"
 
-class RandomBot :
+class RandomBot final :
     public BaseBot
 {
 public:

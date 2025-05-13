@@ -9,21 +9,21 @@ public:
     explicit GameObject(MapLocation* pLocation) : Location(pLocation) {}
     GameObject(MapLocation* pLocation, const int maxHP) : Location(pLocation), HpMax(maxHP), HpCurrent(maxHP) {}
     GameObject(MapLocation* pLocation, const int maxHP, const int currentHP) : Location(pLocation), HpMax(maxHP), HpCurrent(currentHP) {}
-    virtual ~GameObject() { Location = nullptr; }; // MapLocation memory is owned by HunterKillerMap
+    virtual ~GameObject() { Location = nullptr; } // MapLocation memory is owned by HunterKillerMap
     virtual GameObject* Copy() = 0;
     virtual std::string ToString() = 0;
     virtual std::string ToStringInformational() = 0;
     virtual int GetHashCode() = 0;
     void ReduceHP(const int amount) { HpCurrent = std::max(HpCurrent - amount, 0); }
     void IncreaseHP(const int amount) { HpCurrent = std::min(HpCurrent + amount, HpMax); }
-    bool IsDamaged() const { return HpCurrent < HpMax; }
-    int GetID() const { return ID; }
+    [[nodiscard]] bool IsDamaged() const { return HpCurrent < HpMax; }
+    [[nodiscard]] int GetID() const { return ID; }
     void SetID(const int id) { ID = id; }
-    MapLocation& GetLocation() const { return *Location; }
+    [[nodiscard]] MapLocation& GetLocation() const { return *Location; }
     void SetLocation(MapLocation* pLocation) { Location = pLocation; }
-    int GetMaxHP() const { return HpMax; }
+    [[nodiscard]] int GetMaxHP() const { return HpMax; }
     void SetMaxHP(const int amount) { HpMax = amount; }
-    int GetCurrentHP() const { return HpCurrent; }
+    [[nodiscard]] int GetCurrentHP() const { return HpCurrent; }
     void SetCurrentHP(const int amount) { HpCurrent = amount; }
 private:
     int ID = -1;

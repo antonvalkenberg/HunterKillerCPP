@@ -41,7 +41,7 @@ void BaseBot::FilterFriendlyFire(std::vector<UnitOrder*>& rOrders, Unit* pUnit, 
 
 	const auto removableOrders = std::ranges::remove_if(rOrders.begin(), rOrders.end(), [pUnit, rMap, includeInfectedAllyAttacks, includeMedicAllySpecialAttacks](UnitOrder* pOrder)
 	{
-		auto* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(pOrder);
+        const auto* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(pOrder);
 		// Skip non-attack orders
 		if (!pTargetedUnitOrder || !pTargetedUnitOrder->IsAttackOrder())
 			return false;
@@ -57,7 +57,7 @@ void BaseBot::FilterFriendlyFire(std::vector<UnitOrder*>& rOrders, Unit* pUnit, 
 
 void BaseBot::FilterFriendlyFire(std::vector<TargetedUnitOrder*>& rTargetedOrders, Unit* pUnit, HunterKillerMap& rMap, bool includeInfectedAllyAttacks, bool includeMedicAllySpecialAttacks) {
 
-	const auto removableOrders = std::ranges::remove_if(rTargetedOrders.begin(), rTargetedOrders.end(), [pUnit, rMap, includeInfectedAllyAttacks, includeMedicAllySpecialAttacks](TargetedUnitOrder* pTargetedOrder)
+	const auto removableOrders = std::ranges::remove_if(rTargetedOrders.begin(), rTargetedOrders.end(), [pUnit, rMap, includeInfectedAllyAttacks, includeMedicAllySpecialAttacks](const TargetedUnitOrder* pTargetedOrder)
 	{
 		if (IsTargetedOrderFriendlyFire(pTargetedOrder, pUnit, rMap, includeInfectedAllyAttacks, includeMedicAllySpecialAttacks)) {
 			delete pTargetedOrder;
@@ -69,7 +69,7 @@ void BaseBot::FilterFriendlyFire(std::vector<TargetedUnitOrder*>& rTargetedOrder
 	rTargetedOrders.erase(removableOrders.begin(), removableOrders.end());
 }
 
-bool BaseBot::IsTargetedOrderFriendlyFire(TargetedUnitOrder* pOrder, Unit* pUnit, const HunterKillerMap& rMap, bool includeInfectedAllyAttacks, bool includeMedicAllySpecialAttacks)
+bool BaseBot::IsTargetedOrderFriendlyFire(const TargetedUnitOrder* pOrder, const Unit* pUnit, const HunterKillerMap& rMap, const bool includeInfectedAllyAttacks, const bool includeMedicAllySpecialAttacks)
 {
 	// Remove all attacks with our own location as target
 	if (pOrder->GetTargetLocation() == pUnit->GetLocation())
@@ -81,7 +81,7 @@ bool BaseBot::IsTargetedOrderFriendlyFire(TargetedUnitOrder* pOrder, Unit* pUnit
 	if (rMap.IsAttackOrderTargetingAllyUnit(*pOrder, pUnit))
 	{
 		// Unless the order is a for an Infected, or a Medic's special attack
-		const bool goodSelfOrder = (includeInfectedAllyAttacks && pUnit->GetType() == UNIT_INFECTED) ||	(includeMedicAllySpecialAttacks && pUnit->GetType() == UNIT_MEDIC && pOrder->GetOrderType() == ATTACK_SPECIAL);
+		const bool goodSelfOrder = includeInfectedAllyAttacks && pUnit->GetType() == UNIT_INFECTED || includeMedicAllySpecialAttacks && pUnit->GetType() == UNIT_MEDIC && pOrder->GetOrderType() == ATTACK_SPECIAL;
         return !goodSelfOrder;
 	}
 	// Other orders are OK

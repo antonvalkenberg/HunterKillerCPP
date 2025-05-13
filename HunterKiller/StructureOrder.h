@@ -4,14 +4,14 @@
 #include "HunterKillerOrder.h"
 #include "Structure.h"
 
-class StructureOrder
+class StructureOrder final
     : public HunterKillerOrder {
 public:
     StructureOrder() = default;
     StructureOrder(const int structureID, const StructureOrderType type) : HunterKillerOrder(structureID), OrderType(type) {}
     ~StructureOrder() override = default;
     [[nodiscard]] std::string ToString() const { return std::format("Structure ({0}) | {1}", GetObjectID(), static_cast<int>(OrderType)); }
-    StructureOrderType GetOrderType() const { return OrderType; }
+    [[nodiscard]] StructureOrderType GetOrderType() const { return OrderType; }
     static StructureOrder* Spawn(const Structure& rStructure, UnitType unitType);
 private:
     StructureOrderType OrderType = SPAWN_SOLDIER;

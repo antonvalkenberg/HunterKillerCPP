@@ -91,7 +91,7 @@ int HunterKillerMap::GetHashCode() const
 		for (const GameObject* content : cell) {
 			if (!content)
 				continue;
-			output ^= (content->GetID() ^ content->GetLocation().GetHashCode());
+			output ^= content->GetID() ^ content->GetLocation().GetHashCode();
 		}
 	}
 
@@ -134,7 +134,7 @@ bool HunterKillerMap::IsTraversable(const MapLocation& rLocation, std::string* p
 	return true;
 }
 
-bool HunterKillerMap::IsMovePossible(const MapLocation& rFromLocation, TargetedUnitOrder& rMove, std::string* pFailureReasons) const
+bool HunterKillerMap::IsMovePossible(const MapLocation& rFromLocation, const TargetedUnitOrder& rMove, std::string* pFailureReasons) const
 {
 	// Check if the Unit layer at the location points to something
 	if (!MapContent->at(ToPosition(rFromLocation)).at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX)) {
@@ -210,13 +210,13 @@ int HunterKillerMap::GetPositionInDirection(const int position, const Direction 
 	{
 	case NORTH:
 		// North is decreasing in Y, equal X. Or in positions: -(width * distance)
-		targetPosition = position - (MapWidth * distance);
+		targetPosition = position - MapWidth * distance;
 		break;
 	case EAST:
 		targetPosition = position + distance;
 		break;
 	case SOUTH:
-		targetPosition = position + (MapWidth * distance);
+		targetPosition = position + MapWidth * distance;
 		break;
 	case WEST:
 		targetPosition = position - distance;
@@ -349,7 +349,7 @@ MapLocation* HunterKillerMap::GetObjectLocation(const int objectID) const
 	if (!Objects->contains(objectID))
 		return nullptr;
 
-	return &(Objects->at(objectID)->GetLocation());
+	return &Objects->at(objectID)->GetLocation();
 }
 
 Unit* HunterKillerMap::GetUnitAtLocation(const MapLocation& rLocation) const
@@ -367,7 +367,7 @@ MapFeature* HunterKillerMap::GetFeatureAtLocation(const MapLocation& rLocation) 
 	return nullptr;
 }
 
-bool HunterKillerMap::IsAttackOrderTargetingAllyStructure(TargetedUnitOrder& rOrder, const Unit* pUnit) const
+bool HunterKillerMap::IsAttackOrderTargetingAllyStructure(const TargetedUnitOrder& rOrder, const Unit* pUnit) const
 {
 	auto* pFeature = GetFeatureAtLocation(rOrder.GetTargetLocation());
 	if (!pFeature) return false;
@@ -375,7 +375,7 @@ bool HunterKillerMap::IsAttackOrderTargetingAllyStructure(TargetedUnitOrder& rOr
 	return pStructure && pStructure->GetControllingPlayerID() == pUnit->GetControllingPlayerID();
 }
 
-bool HunterKillerMap::IsAttackOrderTargetingAllyUnit(TargetedUnitOrder& rOrder, const Unit* pUnit) const
+bool HunterKillerMap::IsAttackOrderTargetingAllyUnit(const TargetedUnitOrder& rOrder, const Unit* pUnit) const
 {
 	const auto* pTargetUnit = GetUnitAtLocation(rOrder.GetTargetLocation());
 	return pTargetUnit && pTargetUnit->GetControllingPlayerID() == pUnit->GetControllingPlayerID();
@@ -493,7 +493,8 @@ std::vector<MapLocation*>* HunterKillerMap::FindPath(const MapLocation& rFrom, c
 		if (pNode->Position == targetPosition) {
 			while (!pNode->IsRoot()) {
 				path.push_back(pNode->Position);
-				pNode = (HunterKillerMap_PathNode*)pNode->GetParent();
+                // ReSharper disable once CppCStyleCast
+                pNode = (HunterKillerMap_PathNode*)pNode->GetParent(); //TODO: understand better why a C-style cast is potentially problematic here
 			}
 			break;
 		}
@@ -512,7 +513,9 @@ std::vector<MapLocation*>* HunterKillerMap::FindPath(const MapLocation& rFrom, c
 	}
 
     const auto pPathLocations = new std::vector<MapLocation*>();
-	for (auto i = path.rbegin(); i != path.rend(); ++i) {
+
+	//TODO: figure out how to use a range-based loop here. Also it seems to be telling me this makes a reverse_iterator. Figure that out as well.
+	for (auto i = path.rbegin(); i != path.rend(); ++i) {  // NOLINT(modernize-loop-convert)
 		pPathLocations->push_back(&ToLocation(*i));
 	}
 
@@ -535,7 +538,7 @@ std::string HunterKillerMap::ToString() const
 			lineString.insert(x, featureLevel);
 			lineString += unitLevel;
 		}
-		mapString += (lineString + "\n");
+		mapString += lineString + "\n";
 	}
 	return mapString;
 }
@@ -590,7 +593,7 @@ void HunterKillerMap::AddNode(std::unordered_map<int, HunterKillerMap_PathNode*>
         if (const int currentPathCost = pNode->PathCost->GetValue(); !pNode->Closed && pathCost < currentPathCost) {
 			// We need to find the current entry of this location in the open-map
             const auto [rangeStart, rangeEnd] = rOpen.equal_range(pNode->EstimatedCostToTarget);
-			for (std::multimap<int, HunterKillerMap_PathNode*>::iterator i = rangeStart; i != rangeEnd; ++i) {
+			for (auto i = rangeStart; i != rangeEnd; ++i) {
 				if (i->second->Position == locationPosition) {
 					rOpen.erase(i);
 					break;
@@ -646,9 +649,9 @@ bool HunterKillerMap::AttackLocation(const MapLocation& rLocation, const int dam
 	return true;
 }
 
-void HunterKillerMap::Prepare(int activePlayerID, std::unordered_set<MapLocation, MapLocationHash>& rPlayerFieldOfView, std::vector<int>& rRemovedUnitIDs)
+void HunterKillerMap::Prepare(const int activePlayerID, const std::unordered_set<MapLocation, MapLocationHash>& rPlayerFieldOfView, std::vector<int>& rRemovedUnitIDs) const
 {
-	for (auto* pMapLocation : *Locations) {
+	for (const auto* pMapLocation : *Locations) {
 		// Check if this location lies outside of the player's field-of-view
 		if (rPlayerFieldOfView.contains(*pMapLocation))
 			continue;
@@ -658,7 +661,7 @@ void HunterKillerMap::Prepare(int activePlayerID, std::unordered_set<MapLocation
 			// Remove the unit from the map
 			rRemovedUnitIDs.push_back(pUnit->GetID());
 			UnregisterGameObject(pUnit);
-			IDBuffer->erase(std::find(IDBuffer->begin(), IDBuffer->end(), pUnit->GetID()));
+			IDBuffer->erase(std::ranges::find(*IDBuffer, pUnit->GetID()));
 			delete pUnit; pUnit = nullptr;
 		}
 	}

@@ -19,7 +19,7 @@ protected:
 	{
 		delete State; State = nullptr;
 		delete Factory; Factory = nullptr;
-		for (auto* pName : *PlayerNames)
+		for (const auto* pName : *PlayerNames)
 		{
 			delete pName; pName = nullptr;
 		}
@@ -116,7 +116,7 @@ TEST_F(UnitOrderTest, TestUnitMovement)
 
 	// Create an order to move the unit
     const HunterKillerAction* pMoveAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::MoveUnit(*pUnit, *rMap.GetAdjacentLocationInDirection(rPre_UnitLocation, SOUTH));
+	UnitOrder* pOrder = TargetedUnitOrder::MoveUnit(*pUnit, *rMap.GetAdjacentLocationInDirection(rPre_UnitLocation, SOUTH));
 	pMoveAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -196,7 +196,7 @@ TEST_F(UnitOrderTest, TestMovementThroughDoor)
 
 	// Create an order to move the unit
     const HunterKillerAction* pMoveAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::MoveUnit(*pUnit, *rMap.GetAdjacentLocationInDirection(pUnit->GetLocation(), SOUTH));
+	UnitOrder* pOrder = TargetedUnitOrder::MoveUnit(*pUnit, *rMap.GetAdjacentLocationInDirection(pUnit->GetLocation(), SOUTH));
 	pMoveAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -278,7 +278,7 @@ TEST_F(UnitOrderTest, TestFailMovementBlocked)
 
 	// Create an order to move the unit
     const HunterKillerAction* pMoveAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::MoveUnit(*pUnit, *rMap.GetAdjacentLocationInDirection(pUnit->GetLocation(), SOUTH));
+	UnitOrder* pOrder = TargetedUnitOrder::MoveUnit(*pUnit, *rMap.GetAdjacentLocationInDirection(pUnit->GetLocation(), SOUTH));
 	pMoveAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -315,7 +315,7 @@ TEST_F(UnitOrderTest, TestUnitAttack)
 
 	HunterKillerMap& rMap = State->GetMap();
     const MapLocation& rUnitLocation = rMap.ToLocation(1, 0);
-	const MapLocation& rTargetLocation = rMap.ToLocation(2, 1);
+	MapLocation& rTargetLocation = rMap.ToLocation(2, 1);
 
 	// Units created in the initial state are facing NORTH, but we want to test here with it facing EAST, so change
 	Unit* pUnit = rMap.GetUnitAtLocation(rUnitLocation);
@@ -335,7 +335,7 @@ TEST_F(UnitOrderTest, TestUnitAttack)
 
 	// Create an order to attack the target location
     const HunterKillerAction* pAttackAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::UnitAttack(*pUnit, rTargetLocation, false);
+	UnitOrder* pOrder = TargetedUnitOrder::UnitAttack(*pUnit, rTargetLocation, false);
 	pAttackAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -370,7 +370,7 @@ TEST_F(UnitOrderTest, TestSpecialAttackSoldier)
 
 	HunterKillerMap& rMap = State->GetMap();
     const MapLocation& rUnitLocation = rMap.ToLocation(2, 1);
-    const MapLocation& rTargetLocation = rMap.ToLocation(4, 2);
+    MapLocation& rTargetLocation = rMap.ToLocation(4, 2);
     const MapLocation& rTargetUnitLocation = rMap.ToLocation(3, 2);
     const MapLocation& rTargetBaseLocation = rMap.ToLocation(5, 3);
 
@@ -398,7 +398,7 @@ TEST_F(UnitOrderTest, TestSpecialAttackSoldier)
 
 	// Create an order to attack the target location
     const HunterKillerAction* pSpecialAttackAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::UnitAttack(*pUnit, rTargetLocation, true);
+	UnitOrder* pOrder = TargetedUnitOrder::UnitAttack(*pUnit, rTargetLocation, true);
 	pSpecialAttackAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -446,7 +446,7 @@ TEST_F(UnitOrderTest, TestSpecialAttackMedic)
 
     HunterKillerMap& rMap = State->GetMap();
     const MapLocation& rUnitLocation = rMap.ToLocation(3, 0);
-    const MapLocation& rTargetLocation = rMap.ToLocation(1, 0);
+    MapLocation& rTargetLocation = rMap.ToLocation(1, 0);
 
 	// Get the Medic we want to give the order to
 	Unit* pUnit = rMap.GetUnitAtLocation(rUnitLocation);
@@ -471,7 +471,7 @@ TEST_F(UnitOrderTest, TestSpecialAttackMedic)
 
 	// Create an order to attack the target location
     const HunterKillerAction* pSpecialAttackAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::UnitAttack(*pUnit, rTargetLocation, true);
+	UnitOrder* pOrder = TargetedUnitOrder::UnitAttack(*pUnit, rTargetLocation, true);
 	pSpecialAttackAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -510,7 +510,7 @@ TEST_F(UnitOrderTest, TestFailSpecialAttackInfected)
 
     HunterKillerMap& rMap = State->GetMap();
     const MapLocation& rUnitLocation = rMap.ToLocation(1, 0);
-    const MapLocation& rTargetLocation = rMap.ToLocation(2, 1);
+    MapLocation& rTargetLocation = rMap.ToLocation(2, 1);
 
 	// Get the Infected we want to give the order to
 	Unit* pUnit = rMap.GetUnitAtLocation(rUnitLocation);
@@ -532,7 +532,7 @@ TEST_F(UnitOrderTest, TestFailSpecialAttackInfected)
 
 	// Create an order to attack the target location
     const HunterKillerAction* pSpecialAttackAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::UnitAttack(*pUnit, rTargetLocation, true);
+	UnitOrder* pOrder = TargetedUnitOrder::UnitAttack(*pUnit, rTargetLocation, true);
 	pSpecialAttackAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
@@ -600,7 +600,7 @@ TEST_F(UnitOrderTest, TestInfectedTrigger)
 
 	// Create an order to attack the target location
     const HunterKillerAction* pSpecialAttackAction = new HunterKillerAction(*State);
-	UnitOrder* pOrder = UnitOrder::UnitAttack(*pUnit, rTargetLocation, false);
+	UnitOrder* pOrder = TargetedUnitOrder::UnitAttack(*pUnit, rTargetLocation, false);
 	pSpecialAttackAction->TryAddOrder(pOrder);
 
 	// Make the game logic execute the action
