@@ -1,5 +1,11 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "references/include/glad/glad.h"
+#include "references/include/GLFW/glfw3.h"
+#include "references/include/glm/glm.hpp"
+#include "references/include/glm/ext/matrix_clip_space.hpp"
+//TODO: check why the above 4 includes are needed and the 2 below don't cut it anymore
+//#include <glad/glad.h>
+//#include <GLFW/glfw3.h>
+
 #include "stb_image.h"
 #include <chrono>
 #include <thread>
@@ -17,10 +23,10 @@
 
 void InitRendering();
 void Render(HunterKillerState*, HunterKillerAction*);
-bool isWalled(std::vector<std::vector<MapFeature*>>&, int, int);
-int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation);
+bool isWalled(const std::vector<std::vector<MapFeature*>>&, int, int);
+int determineWallMask(const HunterKillerMap& rMap, const MapLocation& rLocation);
 int sample(double weight, int collectionSize);
-void process_input(HunterKillerState*);
+void process_input(const HunterKillerState*);
 // GLFW function declarations
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -33,26 +39,26 @@ unsigned int SCREEN_WIDTH = 1080;
 unsigned int SCREEN_HEIGHT = 720;
 unsigned int MAP_WIDTH = 0;
 unsigned int MAP_HEIGHT = 0;
-const int SPRITE_SIZE = 24;
-const int BAR_SPRITE_WIDTH = 18;
-const int BAR_SPRITE_HEIGHT = 18;
-const int BAR_END_SPRITE_WIDTH = 9;
-const float TEXT_OFFSET = 8.0f;
-const int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
-const glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
-const glm::vec3 COLOR_BLACK = glm::vec3(0.0f, 0.0f, 0.0f);
-const glm::vec3 COLOR_BLUE = glm::vec3(0.0f, 0.0f, 1.0f);
-const glm::vec3 COLOR_NAVY = glm::vec3(0.0f, 0.0f, 0.5f);
-const glm::vec3 COLOR_CYAN = glm::vec3(0.0f, 1.0f, 1.0f);
-const glm::vec3 COLOR_TEAL = glm::vec3(0.0f, 0.5f, 0.5f);
-const glm::vec3 COLOR_GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
-const glm::vec3 COLOR_YELLOW = glm::vec3(1.0f, 1.0f, 0.0f);
-const glm::vec3 COLOR_ORANGE = glm::vec3(1.0f, 0.647f, 0.0f);
-const glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
-const glm::vec3 COLOR_PINK = glm::vec3(1.0f, 0.753f, 0.796f);
-const glm::vec3 COLOR_MAGENTA = glm::vec3(1.0f, 0.0f, 1.0f);
-const glm::vec3 COLOR_UI_TEXT = glm::vec3(0.145f, 0.588f, 0.745f);
-const glm::vec3 COLOR_SHADOWED = glm::vec3(0.5f, 0.5f, 0.5f);
+constexpr int SPRITE_SIZE = 24;
+constexpr int BAR_SPRITE_WIDTH = 18;
+constexpr int BAR_SPRITE_HEIGHT = 18;
+constexpr int BAR_END_SPRITE_WIDTH = 9;
+constexpr float TEXT_OFFSET = 8.0f;
+constexpr int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
+constexpr glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
+constexpr glm::vec3 COLOR_BLACK = glm::vec3(0.0f, 0.0f, 0.0f);
+constexpr glm::vec3 COLOR_BLUE = glm::vec3(0.0f, 0.0f, 1.0f);
+constexpr glm::vec3 COLOR_NAVY = glm::vec3(0.0f, 0.0f, 0.5f);
+constexpr glm::vec3 COLOR_CYAN = glm::vec3(0.0f, 1.0f, 1.0f);
+constexpr glm::vec3 COLOR_TEAL = glm::vec3(0.0f, 0.5f, 0.5f);
+constexpr glm::vec3 COLOR_GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
+constexpr glm::vec3 COLOR_YELLOW = glm::vec3(1.0f, 1.0f, 0.0f);
+constexpr glm::vec3 COLOR_ORANGE = glm::vec3(1.0f, 0.647f, 0.0f);
+constexpr glm::vec3 COLOR_RED = glm::vec3(1.0f, 0.0f, 0.0f);
+constexpr glm::vec3 COLOR_PINK = glm::vec3(1.0f, 0.753f, 0.796f);
+constexpr glm::vec3 COLOR_MAGENTA = glm::vec3(1.0f, 0.0f, 1.0f);
+constexpr glm::vec3 COLOR_UI_TEXT = glm::vec3(0.145f, 0.588f, 0.745f);
+constexpr glm::vec3 COLOR_SHADOWED = glm::vec3(0.5f, 0.5f, 0.5f);
 std::vector<int>* pFloorVariations = new std::vector<int>();
 std::vector<int>* pFloorDecorations = new std::vector<int>();
 std::vector<int>* pSpaceVariations = new std::vector<int>();
@@ -92,7 +98,7 @@ int main()
 
 	// Window Title
 	// ------------
-	std::string windowTitle = std::format("Hunter Killer | {0}", pState->GetMap().GetName());
+    const std::string windowTitle = std::format("Hunter Killer | {0}", pState->GetMap().GetName());
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, windowTitle.c_str(), nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
@@ -133,7 +139,7 @@ int main()
 	bool finishedGame = false;
 	do {
 		// calculate delta time
-		float currentFrame = glfwGetTime();
+        const float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		glfwPollEvents();
@@ -198,7 +204,7 @@ void InitRendering()
 	// Load shaders
     ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.frag", nullptr, "sprite");
     // Configure shaders
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT), 0.0f, -1.0f, 1.0f);
+    const glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT), 0.0f, -1.0f, 1.0f);
     ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
     // Set render-specific controls
@@ -331,7 +337,7 @@ void InitRendering()
 
 	// Randomize tiles
 	std::normal_distribution<double> normalDistribution(0.0, 1.0);
-	int tilesOnScreen = (MAP_HEIGHT / SPRITE_SIZE) * (MAP_WIDTH / SPRITE_SIZE);
+    const int tilesOnScreen = (MAP_HEIGHT / SPRITE_SIZE) * (MAP_WIDTH / SPRITE_SIZE);
 	for (int i = 0; i < tilesOnScreen; i++) {
 		pFloorVariations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 8));
 		pFloorDecorations->push_back(sample(std::abs(std::min(normalDistribution(HunterKillerConstants::RNG), 2.0)), 4));
@@ -431,8 +437,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			pRenderer->DrawSprite(ResourceManager::GetTexture("selected"), glm::vec2(x * 1.0f, y * 1.0f), glm::vec2(SPRITE_SIZE * 1.0f, SPRITE_SIZE * 1.0f), 0.0f, COLOR_ORANGE);
 		}
 
-		auto* pUnit = dynamic_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
-		if (pUnit) {
+        if (auto* pUnit = dynamic_cast<Unit*>(rMapContent[i].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX))) {
 			// Since our Unit's sprites are originally facing WEST, other orientations need mirroring or rotation.
 			bool mirror = false;
 			float unitRotation = 0.0f;
@@ -476,15 +481,13 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 
 	if (pAction) {
 		for (auto* pOrder : *(pAction->GetOrders())) {
-			UnitOrder* pUnitOrder = dynamic_cast<UnitOrder*>(pOrder);
-			if (pUnitOrder) {
+            if (auto pUnitOrder = dynamic_cast<UnitOrder*>(pOrder)) {
 				glm::vec3 orderTextColor = pOrder->IsAccepted() ? COLOR_GREEN : COLOR_PINK;
 				UnitOrderType type = pUnitOrder->GetOrderType();
 				UnitType actorType = pUnitOrder->GetUnitType();
 				
 				if (renderOrderIDs) {
-					auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID());
-					if (pActor && dynamic_cast<Unit*>(pActor)) {
+                    if (auto* pActor = rMap.GetObject(pUnitOrder->GetObjectID()); pActor && dynamic_cast<Unit*>(pActor)) {
 						auto* pUnit = dynamic_cast<Unit*>(pActor);
 						auto& rLocation = pUnit->GetLocation();
 						int x = rLocation.GetX() * SPRITE_SIZE + (2 * SPRITE_SIZE / 3) - TEXT_OFFSET + (SCREEN_WIDTH - MAP_WIDTH) / 2;
@@ -494,10 +497,8 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 					}
 				}
 
-				TargetedUnitOrder* pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(pOrder);
-				if (pTargetedUnitOrder) {
-					auto& rTargetLocation = pTargetedUnitOrder->GetTargetLocation();
-					if (rMap.IsOnMap(rTargetLocation)) {
+                if (auto pTargetedUnitOrder = dynamic_cast<TargetedUnitOrder*>(pOrder)) {
+                    if (auto& rTargetLocation = pTargetedUnitOrder->GetTargetLocation(); rMap.IsOnMap(rTargetLocation)) {
 						int targetX = rTargetLocation.GetX() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
 						int targetY = rTargetLocation.GetY() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 						if (type == ATTACK) {
@@ -611,8 +612,7 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 		std::string mapFeatureText = std::format("Terrain: {0}", pMapFeature->ToStringInformational());
 		pUIText->RenderText(mapFeatureText, middle - (mapFeatureText.length() * 4), mapEndY + 75, 0.7f, COLOR_WHITE);
 
-		auto* pUnit = dynamic_cast<Unit*>(rMapContent[selectedSquare].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX));
-		if (pUnit) {
+        if (auto* pUnit = dynamic_cast<Unit*>(rMapContent[selectedSquare].at(HunterKillerConstants::MAP_INTERNAL_UNIT_INDEX))) {
 			std::string unitText = std::format("Unit: {0}", pUnit->ToStringInformational());
 			pUIText->RenderText(unitText, middle - (unitText.length() * 4), mapEndY + 90, 0.7f, COLOR_WHITE);
 		}
@@ -620,11 +620,11 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
-bool isWalled(std::vector<std::vector<MapFeature*>>& rFeatures, int x, int y) {
+bool isWalled(const std::vector<std::vector<MapFeature*>>& rFeatures, const int x, const int y) {
 	return rFeatures[y].at(x) && (dynamic_cast<Wall*>(rFeatures[y].at(x)) || dynamic_cast<Door*>(rFeatures[y].at(x)));
 }
 
-int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation) {
+int determineWallMask(const HunterKillerMap& rMap, const MapLocation& rLocation) {
 	auto* pFeatures = new std::vector<std::vector<MapFeature*>>();
 	pFeatures->resize(3);
 	for (std::vector<MapFeature*>& rFeaturesRow : *pFeatures) {	
@@ -640,7 +640,7 @@ int determineWallMask(HunterKillerMap& rMap, MapLocation& rLocation) {
 }
 
 /** Grabs all regions from the skin under the key and samples from them with the current weight. */
-int sample(double weight, int collectionSize) {
+int sample(const double weight, const int collectionSize) {
 	// Simple stop once we sample on the weight.
 	for (int i = 0; i < collectionSize; i++) {
 		if (weight < 1 + i * 0.2f)
@@ -649,7 +649,7 @@ int sample(double weight, int collectionSize) {
 	return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void key_callback(GLFWwindow* window, const int key, int scancode, const int action, int mode)
 {
 	// when a user presses the escape key, we set the WindowShouldClose property to true, closing the application
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -665,24 +665,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-bool isClickOnPlayableArea(int x, int y) {
-	int mapStartX = (SCREEN_WIDTH - MAP_WIDTH) / 2;
-	int mapStartY = (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
-	int mapEndX = mapStartX + MAP_WIDTH;
-	int mapEndY = mapStartY + MAP_HEIGHT;
+static bool isClickOnPlayableArea(const int x, const int y) {
+    const int mapStartX = (SCREEN_WIDTH - MAP_WIDTH) / 2;
+    const int mapStartY = (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+    const int mapEndX = mapStartX + MAP_WIDTH;
+    const int mapEndY = mapStartY + MAP_HEIGHT;
 	
 	return x >= mapStartX && x <= mapEndX && y >= mapStartY && y <= mapEndY;
 }
 
-int determineClickedSquareIndex(HunterKillerState* pState, int x, int y) {
-	int mapStartX = (SCREEN_WIDTH - MAP_WIDTH) / 2;
-	int mapStartY = (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+static int determineClickedSquareIndex(const HunterKillerState* pState, const int x, const int y) {
+    const int mapStartX = (SCREEN_WIDTH - MAP_WIDTH) / 2;
+    const int mapStartY = (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
 
-	int relativeMapX = std::floor((x - mapStartX) / SPRITE_SIZE);
-	int relativeMapY = std::floor((y - mapStartY) / SPRITE_SIZE);
+    const int relativeMapX = std::floor((x - mapStartX) / SPRITE_SIZE);
+    const int relativeMapY = std::floor((y - mapStartY) / SPRITE_SIZE);
 
-	auto& rMap = pState->GetMap();
-	int position = rMap.GetMapWidth() * relativeMapY + relativeMapX;
+    const auto& rMap = pState->GetMap();
+    const int position = rMap.GetMapWidth() * relativeMapY + relativeMapX;
 	auto* pMapFeature = rMap.GetFeatureAtLocation(rMap.ToLocation(position));
 	if (pMapFeature->GetType() == SPACE || pMapFeature->GetType() == WALL)
 		return -1;
@@ -690,7 +690,7 @@ int determineClickedSquareIndex(HunterKillerState* pState, int x, int y) {
 	return position;
 }
 
-void process_input(HunterKillerState* pState) {
+void process_input(const HunterKillerState* pState) {
 	// Pressing z key toggles rendering of order-types on Units
 	if (Keys[GLFW_KEY_Z] && !KeysProcessed[GLFW_KEY_Z]) {
 		renderOrderIDs = !renderOrderIDs;
@@ -703,14 +703,14 @@ void process_input(HunterKillerState* pState) {
 	}
 	// Pressing f key toggles rendering of Field-of-View for players
 	if (Keys[GLFW_KEY_F] && !KeysProcessed[GLFW_KEY_F]) {
-		//renderFoV = !renderFoV;
+		//renderFoV = !renderFoV; //TODO: This causes a memory-leak
 		KeysProcessed[GLFW_KEY_F] = true; 
 	}
 
 	// Process left mouse-click
 	if (pMouseLeftClick[0] > 0 && pMouseLeftClick[1] > 0) {
-		bool clickedOnMap = isClickOnPlayableArea(pMouseLeftClick[0], pMouseLeftClick[1]);
-		bool clickedOnNextButton = pMouseLeftClick[0] >= nextButtonPos.x && pMouseLeftClick[0] <= nextButtonPos.x + SPRITE_SIZE && pMouseLeftClick[1] >= nextButtonPos.y && pMouseLeftClick[1] <= nextButtonPos.y + SPRITE_SIZE;
+        const bool clickedOnMap = isClickOnPlayableArea(pMouseLeftClick[0], pMouseLeftClick[1]);
+        const bool clickedOnNextButton = pMouseLeftClick[0] >= nextButtonPos.x && pMouseLeftClick[0] <= nextButtonPos.x + SPRITE_SIZE && pMouseLeftClick[1] >= nextButtonPos.y && pMouseLeftClick[1] <= nextButtonPos.y + SPRITE_SIZE;
 		if (clickedOnMap) selectedSquare = determineClickedSquareIndex(pState, pMouseLeftClick[0], pMouseLeftClick[1]);
 		if (clickedOnNextButton) nextButtonDown = !nextButtonDown;
 		pMouseLeftClick[0] = NULL;
@@ -718,7 +718,7 @@ void process_input(HunterKillerState* pState) {
 	}
 	// Process right mouse-click
 	if (pMouseRightClick[0] > 0 && pMouseRightClick[1] > 0) {
-		bool clickedOnMap = isClickOnPlayableArea(pMouseRightClick[0], pMouseRightClick[1]);
+        const bool clickedOnMap = isClickOnPlayableArea(pMouseRightClick[0], pMouseRightClick[1]);
 		if (clickedOnMap && selectedSquare == determineClickedSquareIndex(pState, pMouseRightClick[0], pMouseRightClick[1]))
 			selectedSquare = -1;
 		pMouseRightClick[0] = NULL;
@@ -726,15 +726,15 @@ void process_input(HunterKillerState* pState) {
 	}
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+void mouse_button_callback(GLFWwindow* window, const int button, const int action, int mods)
 {
 	auto* pMouseXD = new double();
 	auto* pMouseYD = new double();
 	glfwGetCursorPos(window, pMouseXD, pMouseYD);
     
 	if (pMouseXD && pMouseYD) {
-		int x = std::floor(*pMouseXD);
-		int y = std::floor(*pMouseYD);
+        const int x = std::floor(*pMouseXD);
+        const int y = std::floor(*pMouseYD);
 		
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			pMouseLeftClick[0] = x;
@@ -750,7 +750,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	delete pMouseXD; pMouseXD = nullptr;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
