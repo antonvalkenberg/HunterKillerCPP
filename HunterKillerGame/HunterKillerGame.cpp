@@ -43,6 +43,8 @@ constexpr int SPRITE_SIZE = 24;
 constexpr int BAR_SPRITE_WIDTH = 18;
 constexpr int BAR_SPRITE_HEIGHT = 18;
 constexpr int BAR_END_SPRITE_WIDTH = 9;
+constexpr int MOVE_INPUT_BUTTON_SPACING = 20;
+constexpr float MOVE_INPUT_BUTTON_SIZE = SPRITE_SIZE * 1.5;
 constexpr float TEXT_OFFSET = 8.0f;
 constexpr int UP_MASK = 1, RIGHT_MASK = 2, DOWN_MASK = 4, LEFT_MASK = 8;
 constexpr glm::vec3 COLOR_WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -333,6 +335,12 @@ void InitRendering()
 	ResourceManager::LoadTexture("textures/ui/btns/btn_up.png", true, "button_up");
 	ResourceManager::LoadTexture("textures/ui/controls/next.png", true, "next_up");
 	ResourceManager::LoadTexture("textures/ui/controls/next_over.png", true, "next_down");
+	ResourceManager::LoadTexture("textures/ui/controls/move_down.png", true, "move_down");
+	ResourceManager::LoadTexture("textures/ui/controls/move_left.png", true, "move_left");
+	ResourceManager::LoadTexture("textures/ui/controls/move_right.png", true, "move_right");
+	ResourceManager::LoadTexture("textures/ui/controls/move_up.png", true, "move_up");
+	ResourceManager::LoadTexture("textures/ui/controls/rotate_left.png", true, "rotate_counter");
+	ResourceManager::LoadTexture("textures/ui/controls/rotate_right.png", true, "rotate_clock");
 	#pragma endregion
 
 	// Randomize tiles
@@ -617,6 +625,36 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 			pUIText->RenderText(unitText, middle - (unitText.length() * 4), mapEndY + 90, 0.7f, COLOR_WHITE);
 		}
 	}
+
+	// Move options
+	int mapEndX = rMap.GetMapWidth() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+	if (selectedSquare >= 0 && rMap.GetUnitAtLocation(rMap.ToLocation(selectedSquare))) {
+		// Unit's special that has a cooldown
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE - MOVE_INPUT_BUTTON_SPACING), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE - MOVE_INPUT_BUTTON_SPACING), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
+		// Ranged attack for Soldiers and Medics
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 2 - MOVE_INPUT_BUTTON_SPACING * 2), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 2 - MOVE_INPUT_BUTTON_SPACING * 2), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
+		// Movement
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 3 - MOVE_INPUT_BUTTON_SPACING * 3), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("move_down"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 3 - MOVE_INPUT_BUTTON_SPACING * 3), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
+
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 4 - MOVE_INPUT_BUTTON_SPACING * 4), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("move_right"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 4 - MOVE_INPUT_BUTTON_SPACING * 4), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
+
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 5 - MOVE_INPUT_BUTTON_SPACING * 5), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("move_left"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 5 - MOVE_INPUT_BUTTON_SPACING * 5), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
+
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 6 - MOVE_INPUT_BUTTON_SPACING * 6), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("move_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 6 - MOVE_INPUT_BUTTON_SPACING * 6), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
+		// Rotation
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 7 - MOVE_INPUT_BUTTON_SPACING * 7), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("rotate_counter"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING + 5, mapEndY - SPRITE_SIZE * 6.8 - MOVE_INPUT_BUTTON_SPACING * 7), glm::vec2(MOVE_INPUT_BUTTON_SIZE * 0.8, MOVE_INPUT_BUTTON_SIZE * 0.8), 0.0f, COLOR_BLACK);
+		
+		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 8 - MOVE_INPUT_BUTTON_SPACING * 8), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture("rotate_clock"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING + 5, mapEndY - SPRITE_SIZE * 7.8 - MOVE_INPUT_BUTTON_SPACING * 8), glm::vec2(MOVE_INPUT_BUTTON_SIZE * 0.8, MOVE_INPUT_BUTTON_SIZE * 0.8), 0.0f, COLOR_BLACK);
+	}
+
 }
 
 /** Returns whether the feature at the given index in the adjacency matrix contains a Wall or Door. */
