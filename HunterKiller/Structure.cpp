@@ -77,7 +77,7 @@ std::string Structure::ToString() {
 
 std::string Structure::ToStringInformational() {
 	std::string spawnText = std::format("{0}", GetAllowsSpawning() ? ", Can spawn Units" : "");
-	std::string hpText = std::format("{0}", GetIsDestructible() ? std::format(", {0} HP", GetCurrentHP()) : "Indestructible");
+	std::string hpText = std::format("{0}", GetIsDestructible() ? std::format(", {0} HP", GetCurrentHP()) : ", Indestructible");
 	std::string resourceText = std::format("{0}", GeneratesResource ? std::format(", Generates {0} resource per {1} rounds", GetResourceGeneration(), HunterKillerConstants::RULES_STRUCTURE_GENERATION_FREQUENCY) : "");
 	std::string scoreText = std::format("{0}", GeneratesScore ? std::format(", Generates {0} score per {1} rounds", GetScoreGeneration(), HunterKillerConstants::RULES_STRUCTURE_GENERATION_FREQUENCY) : "");
 
