@@ -76,6 +76,7 @@ int* pMouseRightClick = new int[2];
 int selectedSquare = -1;
 glm::vec2 nextButtonPos = glm::vec2(-1, -1);
 bool nextButtonDown = false;
+int clickedButtonIndex = -1;
 
 int main()
 {
@@ -630,28 +631,28 @@ void Render(HunterKillerState* pState, HunterKillerAction* pAction)
 	int mapEndX = rMap.GetMapWidth() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
 	if (selectedSquare >= 0 && rMap.GetUnitAtLocation(rMap.ToLocation(selectedSquare))) {
 		// Unit's special that has a cooldown
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE - MOVE_INPUT_BUTTON_SPACING), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 0 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE - MOVE_INPUT_BUTTON_SPACING), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("melee"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE - MOVE_INPUT_BUTTON_SPACING), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
 		// Ranged attack for Soldiers and Medics
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 2 - MOVE_INPUT_BUTTON_SPACING * 2), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 1 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 2 - MOVE_INPUT_BUTTON_SPACING * 2), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("attack"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 2 - MOVE_INPUT_BUTTON_SPACING * 2), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
 		// Movement
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 3 - MOVE_INPUT_BUTTON_SPACING * 3), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 2 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 3 - MOVE_INPUT_BUTTON_SPACING * 3), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("move_down"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 3 - MOVE_INPUT_BUTTON_SPACING * 3), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
 
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 4 - MOVE_INPUT_BUTTON_SPACING * 4), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 3 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 4 - MOVE_INPUT_BUTTON_SPACING * 4), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("move_right"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 4 - MOVE_INPUT_BUTTON_SPACING * 4), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
 
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 5 - MOVE_INPUT_BUTTON_SPACING * 5), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 4 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 5 - MOVE_INPUT_BUTTON_SPACING * 5), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("move_left"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 5 - MOVE_INPUT_BUTTON_SPACING * 5), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
 
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 6 - MOVE_INPUT_BUTTON_SPACING * 6), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 5 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 6 - MOVE_INPUT_BUTTON_SPACING * 6), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("move_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 6 - MOVE_INPUT_BUTTON_SPACING * 6), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE), 0.0f, COLOR_WHITE);
 		// Rotation
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 7 - MOVE_INPUT_BUTTON_SPACING * 7), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 6 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 7 - MOVE_INPUT_BUTTON_SPACING * 7), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("rotate_counter"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING + 5, mapEndY - SPRITE_SIZE * 6.8 - MOVE_INPUT_BUTTON_SPACING * 7), glm::vec2(MOVE_INPUT_BUTTON_SIZE * 0.8, MOVE_INPUT_BUTTON_SIZE * 0.8), 0.0f, COLOR_BLACK);
 		
-		pRenderer->DrawSprite(ResourceManager::GetTexture("button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 8 - MOVE_INPUT_BUTTON_SPACING * 8), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
+		pRenderer->DrawSprite(ResourceManager::GetTexture(clickedButtonIndex == 7 ? "button_down" : "button_up"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING, mapEndY - SPRITE_SIZE * 8 - MOVE_INPUT_BUTTON_SPACING * 8), glm::vec2(MOVE_INPUT_BUTTON_SIZE, MOVE_INPUT_BUTTON_SIZE));
 		pRenderer->DrawSprite(ResourceManager::GetTexture("rotate_clock"), glm::vec2(mapEndX + MOVE_INPUT_BUTTON_SPACING + 5, mapEndY - SPRITE_SIZE * 7.8 - MOVE_INPUT_BUTTON_SPACING * 8), glm::vec2(MOVE_INPUT_BUTTON_SIZE * 0.8, MOVE_INPUT_BUTTON_SIZE * 0.8), 0.0f, COLOR_BLACK);
 	}
 
@@ -728,6 +729,26 @@ static int determineClickedSquareIndex(const HunterKillerState* pState, const in
 	return position;
 }
 
+static int determineClickedButtonIndex(const HunterKillerState* pState, const int x, const int y)
+{
+	const int mapEndX = pState->GetMap().GetMapWidth() * SPRITE_SIZE + (SCREEN_WIDTH - MAP_WIDTH) / 2;
+	const int mapEndY = pState->GetMap().GetMapHeight() * SPRITE_SIZE + (SCREEN_HEIGHT - MAP_HEIGHT) / 2;
+	
+	const int buttonAreaMinimumX = mapEndX + MOVE_INPUT_BUTTON_SPACING;
+	const int buttonAreaMaximumX = mapEndX + MOVE_INPUT_BUTTON_SPACING + MOVE_INPUT_BUTTON_SIZE;
+	const int buttonAreaMaximumY = mapEndY - MOVE_INPUT_BUTTON_SPACING + 0.5 * SPRITE_SIZE;
+	const int buttonAreaMinimumY = mapEndY - 8 * MOVE_INPUT_BUTTON_SPACING - 8 * SPRITE_SIZE;
+	// check if click falls on button area
+	if (x < buttonAreaMinimumX || x > buttonAreaMaximumX || y < buttonAreaMinimumY || y > buttonAreaMaximumY) return -1;
+	
+	constexpr int buttonStackingHeight = MOVE_INPUT_BUTTON_SPACING + SPRITE_SIZE;
+	const int clickedPositionInButtonStack = mapEndY - y;
+	const int clickedButton = clickedPositionInButtonStack / buttonStackingHeight;
+	const double leftover = clickedPositionInButtonStack % buttonStackingHeight;
+	// if the leftover from the modulus is less than the difference of stacking-height and the button size, the click was in between buttons
+	return leftover < buttonStackingHeight - (int)MOVE_INPUT_BUTTON_SIZE ? -1 : clickedButton;
+}
+
 void process_input(const HunterKillerState* pState) {
 	// Pressing z key toggles rendering of order-types on Units
 	if (Keys[GLFW_KEY_Z] && !KeysProcessed[GLFW_KEY_Z]) {
@@ -747,7 +768,8 @@ void process_input(const HunterKillerState* pState) {
 
 	// Process left mouse-click
 	if (pMouseLeftClick[0] > 0 && pMouseLeftClick[1] > 0) {
-        const bool clickedOnMap = isClickOnPlayableArea(pMouseLeftClick[0], pMouseLeftClick[1]);
+        clickedButtonIndex = determineClickedButtonIndex(pState, pMouseLeftClick[0], pMouseLeftClick[1]);
+		const bool clickedOnMap = isClickOnPlayableArea(pMouseLeftClick[0], pMouseLeftClick[1]);
         const bool clickedOnNextButton = pMouseLeftClick[0] >= nextButtonPos.x && pMouseLeftClick[0] <= nextButtonPos.x + SPRITE_SIZE && pMouseLeftClick[1] >= nextButtonPos.y && pMouseLeftClick[1] <= nextButtonPos.y + SPRITE_SIZE;
 		if (clickedOnMap) selectedSquare = determineClickedSquareIndex(pState, pMouseLeftClick[0], pMouseLeftClick[1]);
 		if (clickedOnNextButton) nextButtonDown = !nextButtonDown;
